@@ -1,11 +1,12 @@
 use strict;
 
 package Moo::GenericRole::Common::Core;
-our $VERSION = 'v1.0.02';
-##~ DIGEST : 49a3e5a69f1328152afea532c5fc4243
+our $VERSION = 'v1.0.3';
+##~ DIGEST : 0f75579b88ad7f6b9cfcb74f975bca4c
 
 use Moo::Role;
 use 5.006;
+use Data::Dumper;
 use warnings;
 use Carp qw/confess/;
 
@@ -73,10 +74,10 @@ sub demand_params {
 }
 
 #use Data::Dumper in a way that can be changed to Carp::cluck(Data::Dumper::Dumper()); when it's not clear where the actual dump is coming from
-sub ddumper { 
-	my ($self,$v) = @_;
+sub ddumper {
+	my ( $self, $v ) = @_;
 	require Data::Dumper;
-	return Data::Dumper::Dumper($v);
+	return Data::Dumper::Dumper( $v );
 }
 
 =head2 WRAPPERS

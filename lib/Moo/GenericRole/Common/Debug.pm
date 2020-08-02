@@ -1,8 +1,8 @@
 use strict;
 
 package Moo::GenericRole::Common::Debug;
-our $VERSION = 'v1.0.1';
-##~ DIGEST : e082540804274d445aaa1fe7984d76ad
+our $VERSION = 'v1.0.2';
+##~ DIGEST : 8ad197498564e6c0573ea0cc95493385
 
 use Moo::Role;
 use 5.006;
@@ -92,7 +92,7 @@ sub debug_msg_4 {
 =cut
 
 sub morale_msg {
-	my @msgs    = ( 'You can do it!', 'You can find the bug!', 'The code believes in you!', 'Take a 5 minute break', "Try writing out the problem by hand, make sure you're solving what you're trying to solve", 'Consult the rubber duck cabal, or a nearby friend', 'Try some bikeshedding of method names for a while, might help highlight what is actually happening', 'Permissions problem maybe?', 'Have a look at the network stack', 'Needs moar Carp::cluck(Dumper());', 'Go get a breath of fresh air - can only help', 'Coffee/Sugar/Solvent paucity detected', 'Insufficient :metal:; adjust with Dancing With Myself by Billy Idol', 'Seek additional morale improvement methods','Check the actual file paths are what you think they are' );
+	my @msgs    = ( 'You can do it!', 'You can find the bug!', 'The code believes in you!', 'Take a 5 minute break', "Try writing out the problem by hand, make sure you're solving what you're trying to solve", 'Consult the rubber duck cabal, or a nearby friend', 'Try some bikeshedding of method names for a while, might help highlight what is actually happening', 'Permissions problem maybe?', 'Have a look at the network stack', 'Needs moar Carp::cluck(Dumper());', 'Go get a breath of fresh air - can only help', 'Coffee/Sugar/Solvent paucity detected', 'Insufficient :metal:; adjust with Dancing With Myself by Billy Idol', 'Seek additional morale improvement methods', 'Check the actual file paths are what you think they are' );
 	my $pointer = int( rand( scalar( @msgs ) ) - 1 );
 	return $msgs[$pointer];
 

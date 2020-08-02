@@ -1,8 +1,8 @@
 use strict;
 
 package Moo::GenericRole::AWS::Paws;
-our $VERSION = '0.02';
-##~ DIGEST : 78ad38bfe30fc92c38ebee155b2e0825
+our $VERSION = '0.03';
+##~ DIGEST : d919383cb9dcb60b4ae1787afc4077cc
 
 use Moo::Role;
 use 5.006;
@@ -50,7 +50,7 @@ sub do_something {
 
 sub paws_with_role_arn {
 	my ( $self, $p, $value ) = @_;
-	demand_params
+	demand_params;
 
 }
 
