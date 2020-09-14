@@ -1,8 +1,8 @@
 use strict;
 
 package Moo::GenericRole::Common::Debug;
-our $VERSION = 'v1.0.2';
-##~ DIGEST : 8ad197498564e6c0573ea0cc95493385
+our $VERSION = 'v1.0.3';
+##~ DIGEST : f825b3b15e0e04c0c575f019a0df4ccc
 
 use Moo::Role;
 use 5.006;
@@ -25,12 +25,12 @@ use warnings;
 
 ACCESSORS: {
 
-	#debug level
-	has debug => (
-		is      => 'rw',
-		lazy    => 1,
-		default => sub { return 0 }
-	);
+    #debug level
+    has debug => (
+        is      => 'rw',
+        lazy    => 1,
+        default => sub { return 0 }
+    );
 }
 
 =head1 SUBROUTINES/METHODS
@@ -42,20 +42,21 @@ ACCESSORS: {
 
 sub debug_msg {
 
-	my ( $self, $msg, $msg_lvl ) = @_;
-	$msg_lvl ||= 1;
+    my ( $self, $msg, $msg_lvl ) = @_;
+    $msg_lvl ||= 1;
 
-	if ( $msg_lvl >= $self->debug() ) {
-		my $debug_method = "debug_msg_$msg_lvl";
-		if ( $self->can( $debug_method ) ) {
-			$self->$debug_method( $msg );
-			return 1;
-		} else {
-			confess( "Unsupported message level $msg_lvl" );
-		}
-	}
+    if ( $msg_lvl >= $self->debug() ) {
+        my $debug_method = "debug_msg_$msg_lvl";
+        if ( $self->can($debug_method) ) {
+            $self->$debug_method($msg);
+            return 1;
+        }
+        else {
+            confess("Unsupported message level $msg_lvl");
+        }
+    }
 
-	return;
+    return;
 
 }
 
@@ -64,26 +65,26 @@ sub debug_msg {
 =cut
 
 sub debug_msg_1 {
-	my ( $self, $msg ) = @_;
-	Carp::cluck( $msg );
+    my ( $self, $msg ) = @_;
+    Carp::cluck($msg);
 }
 
 sub debug_msg_2 {
-	my ( $self, $msg ) = @_;
-	$self->debug_msg_1( $msg );
+    my ( $self, $msg ) = @_;
+    $self->debug_msg_1($msg);
 
 }
 
 sub debug_msg_3 {
-	my ( $self, $msg ) = @_;
-	$self->debug_msg_1( $msg );
+    my ( $self, $msg ) = @_;
+    $self->debug_msg_1($msg);
 
 }
 
 sub debug_msg_4 {
-	my ( $self, $msg ) = @_;
-	$self->debug_msg_1( $self->morale_msg );
-	$self->debug_msg_1( $msg );
+    my ( $self, $msg ) = @_;
+    $self->debug_msg_1( $self->morale_msg );
+    $self->debug_msg_1($msg);
 
 }
 
@@ -92,9 +93,25 @@ sub debug_msg_4 {
 =cut
 
 sub morale_msg {
-	my @msgs    = ( 'You can do it!', 'You can find the bug!', 'The code believes in you!', 'Take a 5 minute break', "Try writing out the problem by hand, make sure you're solving what you're trying to solve", 'Consult the rubber duck cabal, or a nearby friend', 'Try some bikeshedding of method names for a while, might help highlight what is actually happening', 'Permissions problem maybe?', 'Have a look at the network stack', 'Needs moar Carp::cluck(Dumper());', 'Go get a breath of fresh air - can only help', 'Coffee/Sugar/Solvent paucity detected', 'Insufficient :metal:; adjust with Dancing With Myself by Billy Idol', 'Seek additional morale improvement methods', 'Check the actual file paths are what you think they are' );
-	my $pointer = int( rand( scalar( @msgs ) ) - 1 );
-	return $msgs[$pointer];
+    my @msgs = (
+        'You can do it!',
+        'You can find the bug!',
+        'The code believes in you!',
+        'Take a 5 minute break',
+"Try writing out the problem by hand, make sure you're solving what you're trying to solve",
+        'Consult the rubber duck cabal, or a nearby friend',
+'Try some bikeshedding of method names for a while, might help highlight what is actually happening',
+        'Permissions problem maybe?',
+        'Have a look at the network stack',
+        'Needs moar Carp::cluck(Dumper());',
+        'Go get a breath of fresh air - can only help',
+        'Coffee/Sugar/Solvent paucity detected',
+        'Insufficient :metal:; adjust with Dancing With Myself by Billy Idol',
+        'Seek additional morale improvement methods',
+        'Check the actual file paths are what you think they are'
+    );
+    my $pointer = int( rand( scalar(@msgs) ) - 1 );
+    return $msgs[$pointer];
 
 }
 
