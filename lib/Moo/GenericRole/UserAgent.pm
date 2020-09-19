@@ -1,5 +1,5 @@
 package Moo::GenericRole::UserAgent;
-our $VERSION = 'v1.0.7';
+our $VERSION = 'v1.0.9';
 ##~ DIGEST : 6a6f3275020c328a426e63bfad71544d
 # Do http requests
 use Moo::Role;

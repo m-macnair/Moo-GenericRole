@@ -1,6 +1,6 @@
 package Moo::GenericRole::DB;
-our $VERSION = 'v1.0.7';
-##~ DIGEST : fddf0984da10648e76271e3e73346cec
+our $VERSION = 'v1.0.9';
+##~ DIGEST : 34745dbdb4bd71e8f1566bc70e4e0328
 use Moo::Role;
 use Carp;
 ACCESSORS: {
@@ -24,6 +24,17 @@ ACCESSORS: {
 		lazy    => 1,
 		default => sub { return 1000 }
 	);
+}
+
+sub query {
+
+	my $self = shift();
+
+	#HOURS wasted because I didn't know this was a thing
+	my $sth = $self->prepare_cached( shift );
+	$sth->execute( @_ );
+	return $sth;
+
 }
 
 sub _set_dbh {

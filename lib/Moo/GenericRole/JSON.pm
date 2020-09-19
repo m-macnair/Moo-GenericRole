@@ -1,6 +1,6 @@
 package Moo::GenericRole::JSON;
 use Moo::Role;
-our $VERSION = 'v1.0.6';
+our $VERSION = 'v1.0.8';
 ##~ DIGEST : 4b666f8c14773e658db92cb0f3a33bfe
 # enable $self->json and sugar
 use JSON;

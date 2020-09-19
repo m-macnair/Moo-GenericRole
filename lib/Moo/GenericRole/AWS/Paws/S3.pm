@@ -1,7 +1,7 @@
 use strict; # applies to all packages defined in the file
 
 package Moo::GenericRole::AWS::Paws::S3;
-our $VERSION = 'v1.0.6';
+our $VERSION = 'v1.0.8';
 ##~ DIGEST : 64163010a8dbb4aeb1b60971e269d4ed
 use 5.006;
 use warnings;

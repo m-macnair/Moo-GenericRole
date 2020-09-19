@@ -1,5 +1,5 @@
 package Moo::GenericRole::PID;
-our $VERSION = 'v1.0.5';
+our $VERSION = 'v1.0.7';
 ##~ DIGEST : 8555959b6c0d6b4d42a163cca32134ee
 # do pids - ideally with wrappers around main() calls
 use Moo::Role;

@@ -1,11 +1,11 @@
 package Moo::GenericRole::FileIO;
-our $VERSION = 'v1.0.7';
-##~ DIGEST : 2ff20714cef1b0c9ab1ec470a7f7738b
+our $VERSION = 'v2.0.2';
+##~ DIGEST : 7488228815b08d0917d181900cb1e9d3
 # ABSTRACT: persistent file IO
 use Toolbox::FileIO;
 use Moo::Role;
 ACCESSORS: {
-	has filehandles => (
+	has file_handles => (
 		is      => 'rw',
 		lazy    => 1,
 		default => sub {
@@ -19,16 +19,16 @@ sub ofh {
 
 	my ( $self, $path, $c ) = @_;
 	$c ||= {};
-	unless ( exists( $self->filehandles->{$path} ) ) {
+	unless ( exists( $self->file_handles->{$path} ) ) {
 		if ( $c->{fh} ) {
-			$self->filehandles->{$path} = $c->{fh};
+			$self->file_handles->{$path} = $c->{fh};
 		} else {
-			unless ( open( $self->filehandles->{$path}, $c->{openparams} || ">:encoding(UTF-8)", $path ) ) {
+			unless ( open( $self->file_handles->{$path}, $c->{openparams} || ">:encoding(UTF-8)", $path ) ) {
 				confess( "Failed to open write file [$path] : $!" );
 			}
 		}
 	}
-	return $self->filehandles->{$path};
+	return $self->file_handles->{$path};
 
 }
 
@@ -37,12 +37,12 @@ sub closefhs {
 	my ( $self, $paths ) = @_;
 
 	#close all unless specific
-	$paths ||= [ keys( %{$self->filehandles} ) ];
+	$paths ||= [ keys( %{$self->file_handles} ) ];
 	use Data::Dumper;
 	for ( @{$paths} ) {
-		close( $self->filehandles->{$_} )
+		close( $self->file_handles->{$_} )
 		  or confess( "Failed to close file handle for [$_] : $!" );
-		undef( $self->filehandles->{$_} );
+		undef( $self->file_handles->{$_} );
 	}
 
 }

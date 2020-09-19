@@ -3,7 +3,7 @@ package Moo::GenericRole::FileSystem;
 # ABSTRACT: filesystem-y things + functional version too
 use Moo::Role;
 use Toolbox::FileSystem;
-our $VERSION = 'v1.0.6';
+our $VERSION = 'v1.0.8';
 ##~ DIGEST : a689e48e7aacc5747eaf33ecabeb700e
 use POSIX;
 use Data::UUID;

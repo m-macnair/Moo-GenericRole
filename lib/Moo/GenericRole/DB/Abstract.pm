@@ -1,5 +1,5 @@
 package Moo::GenericRole::DB::Abstract;
-our $VERSION = 'v1.0.6';
+our $VERSION = 'v1.0.8';
 ##~ DIGEST : 1b208cb75ea4346392bea021069d8505
 #ABSTRACT: use $self->dbi and sql abstract
 use Try::Tiny;
