@@ -1,9 +1,8 @@
 use strict;
 
 package Moo::GenericRole::AWS::Paws;
-our $VERSION = '0.04';
-##~ DIGEST : ba1c524de64bf31c661232da5625120b
-
+our $VERSION = '0.07';
+##~ DIGEST : c567e91d4bdb0d43c4f3a53851b87a6a
 use Moo::Role;
 use 5.006;
 use warnings;
@@ -26,11 +25,10 @@ use warnings;
 =cut
 
 ACCESSORS: {
-
-    has paws => (
-        is   => 'rw',
-        lazy => 1,
-    );
+	has paws => (
+		is   => 'rw',
+		lazy => 1,
+	);
 }
 
 =head1 SUBROUTINES/METHODS
@@ -40,8 +38,10 @@ ACCESSORS: {
 =cut
 
 sub do_something {
-    my ( $self, $p ) = @_;
-    $p ||= {};
+
+	my ( $self, $p ) = @_;
+	$p ||= {};
+
 }
 
 =head2 SECONDARY SUBS
@@ -49,8 +49,9 @@ sub do_something {
 =cut
 
 sub paws_with_role_arn {
-    my ( $self, $p, $value ) = @_;
-    demand_params;
+
+	my ( $self, $p, $value ) = @_;
+	demand_params;
 
 }
 

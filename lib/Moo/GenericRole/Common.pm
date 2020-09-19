@@ -1,10 +1,8 @@
 use strict;
 
 package Moo::GenericRole::Common;
-
-our $VERSION = 'v1.0.1';
-##~ DIGEST : 4357d618aed86b5be5ebe60c7e3a22d7
-
+our $VERSION = 'v1.0.3';
+##~ DIGEST : 288525695cfc9625a0270b574143d3e7
 use Moo::Role;
 use 5.006;
 use warnings;

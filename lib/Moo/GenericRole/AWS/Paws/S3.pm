@@ -1,10 +1,8 @@
-use strict;    # applies to all packages defined in the file
+use strict; # applies to all packages defined in the file
 
 package Moo::GenericRole::AWS::Paws::S3;
-our $VERSION = 'v1.0.3';
-
-##~ DIGEST : fd8a01da2f694b13a776764aea4ed4d5
-
+our $VERSION = 'v1.0.6';
+##~ DIGEST : 64163010a8dbb4aeb1b60971e269d4ed
 use 5.006;
 use warnings;
 use Paws;
@@ -32,21 +30,19 @@ use Carp;
 =cut
 
 ACCESSORS: {
-
-    has s3 => (
-        is      => 'rw',
-        lazy    => 1,
-        builder => sub {
-            my ($self) = @_;
-            $self->paws->service( 'S3', region => $self->paws_default_region );
-        }
-    );
-    has s3_buffer_size => (
-        is      => 'rw',
-        lazy    => 1,
-        default => sub { return 1024 }
-    );
-
+	has s3 => (
+		is      => 'rw',
+		lazy    => 1,
+		builder => sub {
+			my ( $self ) = @_;
+			$self->paws->service( 'S3', region => $self->paws_default_region );
+		}
+	);
+	has s3_buffer_size => (
+		is      => 'rw',
+		lazy    => 1,
+		default => sub { return 1024 }
+	);
 }
 
 =head1 SUBROUTINES/METHODS
@@ -60,55 +56,46 @@ ACCESSORS: {
 
 sub s3_upload {
 
-    my ( $self, $p, $x ) = @_;
-    $x ||= {};
-    $self->demand_params( $p, [qw/ source bucket/] );
+	my ( $self, $p, $x ) = @_;
+	$x ||= {};
+	$self->demand_params( $p, [qw/ source bucket/] );
 
-    # 	$self->filechecks($p->{source});
-
-    open( my $fh, '<:raw', $p->{source} )
-      || Carp::confess("Problem opening $p->{source} : $!");
-    my $filecontent;
-    while ( read( $fh, my $buffer, 4096 ) ) {
-        $filecontent .= $buffer;
-    }
-    close($fh);
-
-    use Try::Tiny;
-    my $res;
-    try {
-
-        # TODO 1. mime wizardry 2. multipart for large files
-        $res = $self->s3->PutObject(
-            Bucket => $p->{bucket},
-            Key    => $p->{source} || $p->{target},
-            Body   => $filecontent,
-
-        );
-
-        for my $method (
-            qw/
-            ETag
-            Expiration
-            RequestCharged
-            SSECustomerAlgorithm
-            SSECustomerKeyMD5
-            SSEKMSEncryptionContext
-            SSEKMSKeyId
-            ServerSideEncryption
-            VersionId
-            /
-          )
-        {
-            print "$/ res->$method : " . $res->$method;
-
-        }
-    }
-    catch {
-
-        Carp::confess( "Unhandled failure :" . $_ );
-
-    };
+	# 	$self->filechecks($p->{source});
+	open( my $fh, '<:raw', $p->{source} )
+	  || Carp::confess( "Problem opening $p->{source} : $!" );
+	my $filecontent;
+	while ( read( $fh, my $buffer, 4096 ) ) {
+		$filecontent .= $buffer;
+	}
+	close( $fh );
+	use Try::Tiny;
+	my $res;
+	try {
+		# TODO 1. mime wizardry 2. multipart for large files
+		$res = $self->s3->PutObject(
+			Bucket => $p->{bucket},
+			Key    => $p->{source} || $p->{target},
+			Body   => $filecontent,
+		);
+		for my $method (
+			qw/
+			ETag
+			Expiration
+			RequestCharged
+			SSECustomerAlgorithm
+			SSECustomerKeyMD5
+			SSEKMSEncryptionContext
+			SSEKMSKeyId
+			ServerSideEncryption
+			VersionId
+			/
+		  )
+		{
+			print "$/ res->$method : " . $res->$method;
+		}
+	} catch {
+		Carp::confess( "Unhandled failure :" . $_ );
+	};
 
 }
 

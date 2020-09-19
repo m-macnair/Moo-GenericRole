@@ -1,9 +1,8 @@
 use strict;
 
 package Moo::GenericRole::Common::Core;
-our $VERSION = 'v1.0.4';
-##~ DIGEST : dc49bd4b9d151a478dcba285c219633d
-
+our $VERSION = 'v1.0.7';
+##~ DIGEST : 71bc4a44c32c09a0c470e347850d2eb9
 use Moo::Role;
 use 5.006;
 use Data::Dumper;
@@ -19,7 +18,7 @@ use Carp qw/confess/;
 =cut
 
 =head1 SYNOPSIS
-	The things I always do and/or need 
+	The things I always do and/or need
 =head2 TODO
 	Generall planned work
 =head1 ACCESSORS
@@ -33,57 +32,53 @@ use Carp qw/confess/;
 =cut
 
 sub demand_params {
-    my ( $self, $map, $list ) = @_;
 
-    confess( "\$map is not a map, is instead : " . Dumper($map) )
-      unless ref($map) eq 'HASH';
-    confess( "\$list is not a list, is instead : " . Dumper($list) )
-      unless ref($list) eq 'ARRAY';
+	my ( $self, $map, $list ) = @_;
+	confess( "\$map is not a map, is instead : " . Dumper( $map ) )
+	  unless ref( $map ) eq 'HASH';
+	confess( "\$list is not a list, is instead : " . Dumper( $list ) )
+	  unless ref( $list ) eq 'ARRAY';
+	my $msg;
+	CHECK: {
+		for my $check ( @{$list} ) {
+			THISCHECK: {
+				my $ref = ref( $check );
 
-    my $msg;
-  CHECK: {
-        for my $check ( @{$list} ) {
-          THISCHECK: {
-                my $ref = ref($check);
+				#"If one of these values is present, move on"
+				if ( $ref eq 'ARRAY' ) {
+					for my $subcheck ( @{$check} ) {
+						if ( defined( $map->{$subcheck} ) ) {
+							next THISCHECK;
+						}
+					}
+					$msg = "None of [" . join( ',', @{$check} ) . "] provided in \$map";
+					last CHECK;
+				} elsif ( $ref ) {
+					$msg = "Non SCALAR, Non ARRAY reference [$ref] passed in \$list";
+					last CHECK;
+				} else {
+					unless ( $map->{$check} ) {
+						$msg = "Required key [$check] missing in \$map";
+						last CHECK;
+					}
+				}
+			}
+		}
+	}
+	if ( $msg ) {
+		confess( "$msg - \$map :\n\t" . Dumper( $map ) );
+	}
+	return;
 
-                #"If one of these values is present, move on"
-                if ( $ref eq 'ARRAY' ) {
-                    for my $subcheck ( @{$check} ) {
-                        if ( defined( $map->{$subcheck} ) ) {
-                            next THISCHECK;
-                        }
-                    }
-                    $msg =
-                        "None of ["
-                      . join( ',', @{$check} )
-                      . "] provided in \$map";
-                    last CHECK;
-                }
-                elsif ($ref) {
-                    $msg =
-                      "Non SCALAR, Non ARRAY reference [$ref] passed in \$list";
-                    last CHECK;
-                }
-                else {
-                    unless ( $map->{$check} ) {
-                        $msg = "Required key [$check] missing in \$map";
-                        last CHECK;
-                    }
-                }
-            }
-        }
-    }
-    if ($msg) {
-        confess( "$msg - \$map :\n\t" . Dumper($map) );
-    }
-    return;
 }
 
 #use Data::Dumper in a way that can be changed to Carp::cluck(Data::Dumper::Dumper()); when it's not clear where the actual dump is coming from
 sub ddumper {
-    my ( $self, $v ) = @_;
-    require Data::Dumper;
-    return Data::Dumper::Dumper($v);
+
+	my ( $self, $v ) = @_;
+	require Data::Dumper;
+	return Data::Dumper::Dumper( $v );
+
 }
 
 =head2 WRAPPERS

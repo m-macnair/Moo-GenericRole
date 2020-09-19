@@ -1,77 +1,89 @@
 package Moo::GenericRole::DB;
-our $VERSION = 'v1.0.4';
-
-##~ DIGEST : 8b41f693cc8a3ced6ada95ffafb538f1
+our $VERSION = 'v1.0.7';
+##~ DIGEST : fddf0984da10648e76271e3e73346cec
 use Moo::Role;
 use Carp;
-
 ACCESSORS: {
+	has dbh => (
+		is      => 'rw',
+		lazy    => 1,
+		default => sub {
+			my $self = shift;
 
-    has dbh                  => ( is => 'rw', );
-    has _transaction_counter => (
-        is      => 'rw',
-        lazy    => 1,
-        default => sub { return 0 }
-    );
-
-    has _statement_limit => (
-        is      => 'rw',
-        lazy    => 1,
-        default => sub { return 1000 }
-    );
-
+			#this will intentionally fail on init; but the structure will be universal
+			return $self->_set_dbh();
+		}
+	);
+	has _transaction_counter => (
+		is      => 'rw',
+		lazy    => 1,
+		default => sub { my $self = shift; return $self->_set_dbh() }
+	);
+	has _statement_limit => (
+		is      => 'rw',
+		lazy    => 1,
+		default => sub { return 1000 }
+	);
 }
 
 sub _set_dbh {
-    my $self = shift;
 
-    use DBI;
-    my $dbh = DBI->connect(@_) or die $DBI::errstr;
-    $self->dbh($dbh);
-    return 1;
+	my $self = shift;
+	use DBI;
+	my $dbh = DBI->connect( @_ ) or die $DBI::errstr;
+	$self->dbh( $dbh );
+	return 1;
+
 }
 
 sub commitmaybe {
-    my ($self) = @_;
-    my $counter = $self->_transaction_counter();
-    $counter++;
-    if ( $counter >= $self->_statement_limit() ) {
-        $self->dbh->commit() unless $self->dbh->{AutoCommit};
-        $counter = 0;
-    }
-    $self->_transaction_counter($counter);
+
+	my ( $self ) = @_;
+	my $counter = $self->_transaction_counter();
+	$counter++;
+	if ( $counter >= $self->_statement_limit() ) {
+		$self->dbh->commit() unless $self->dbh->{AutoCommit};
+		$counter = 0;
+	}
+	$self->_transaction_counter( $counter );
 
 }
 
 sub commithard {
-    my ($self) = @_;
-    $self->_transaction_counter(0);
-    $self->dbh->commit() unless $self->dbh->{AutoCommit};
+
+	my ( $self ) = @_;
+	$self->_transaction_counter( 0 );
+	$self->dbh->commit() unless $self->dbh->{AutoCommit};
+
 }
 
 sub get_column_hash {
-    my ( $self, $sth, $col ) = @_;
-    my $return = [];
-    Carp::confess("Column not provided and cannot be inferred") unless $col;
-    while ( my $row = $sth->fetchrow_hashref() ) {
-        push( @{$return}, $row->{$col} );
-    }
-    return $return;
+
+	my ( $self, $sth, $col ) = @_;
+	my $return = [];
+	Carp::confess( "Column not provided and cannot be inferred" ) unless $col;
+	while ( my $row = $sth->fetchrow_hashref() ) {
+		push( @{$return}, $row->{$col} );
+	}
+	return $return;
+
 }
 
 sub get_column_array {
-    my ( $self, $sth, $col ) = @_;
 
-    my $return = [];
-    $col ||= 0;
-    while ( my $row = $sth->fetchrow_arrayref() ) {
-        push( @{$return}, $row->[$col] );
-    }
-    return $return;
+	my ( $self, $sth, $col ) = @_;
+	my $return = [];
+	$col ||= 0;
+	while ( my $row = $sth->fetchrow_arrayref() ) {
+		push( @{$return}, $row->[$col] );
+	}
+	return $return;
+
 }
 
 sub last_insert_id {
-    die "nope";
-}
 
+	die "nope";
+
+}
 1;
