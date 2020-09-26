@@ -1,8 +1,8 @@
 use strict;
 
 package Moo::GenericRole::Common;
-our $VERSION = 'v1.0.3';
-##~ DIGEST : 288525695cfc9625a0270b574143d3e7
+our $VERSION = 'v1.0.4';
+##~ DIGEST : c874a071a2a32a03b5868a188be3ef82
 use Moo::Role;
 use 5.006;
 use warnings;
@@ -20,8 +20,10 @@ use warnings;
 =cut
 
 with qw/
+  Moo::GenericRole
   Moo::GenericRole::Common::Debug
   Moo::GenericRole::Common::Core
+
   /;
 
 =head1 AUTHOR

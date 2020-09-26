@@ -1,7 +1,8 @@
-use strict;
 
+#ABSTRACT: things I rely on, but aren't universally necessary
 package Moo::GenericRole::Common::Core;
-our $VERSION = 'v1.0.7';
+use strict;
+our $VERSION = 'v1.0.9';
 ##~ DIGEST : 71bc4a44c32c09a0c470e347850d2eb9
 use Moo::Role;
 use 5.006;

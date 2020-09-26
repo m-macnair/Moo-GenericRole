@@ -9,7 +9,6 @@ with qw/
   Moo::GenericRole::AWS::Paws
   Moo::GenericRole::AWS::Paws::S3
   /;
-
 1;
 
 package main;
@@ -24,7 +23,6 @@ sub main {
 			  accesskey
 			  secretkey
 			  source
-
 			  bucket
 			  paws_default_region
 			  /
@@ -37,12 +35,10 @@ sub main {
 				AWSSecretKey   => $c->{secretkey},
 			}
 		);
-
 		$obj->paws( $paws );
 		$obj->paws_default_region( $c->{paws_default_region} );
 	}
 	$obj->s3->ListObjects( Bucket => $c->{bucket} );
 
 	# 	$obj->s3_upload( $c );
-
 }

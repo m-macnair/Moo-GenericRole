@@ -1,8 +1,7 @@
-use strict; # applies to all packages defined in the file
-
+#ABSTRACT: Paws accessors and helper methods
 package Moo::GenericRole::AWS::Paws;
-our $VERSION = 'v1.0.7';
-##~ DIGEST : f1af42b5608100ba790762e904ab0734
+our $VERSION = 'v1.0.10';
+##~ DIGEST : af808a946636dc0f2d5572a5bccda47b
 use 5.006;
 use warnings;
 use Paws;
@@ -12,6 +11,7 @@ use Data::Dumper;
 use Carp;
 use Paws::Credential::Explicit;
 with qw/
+  Moo::GenericRole
   Moo::GenericRole::UUID
   Moo::GenericRole::Common::Core
   Moo::GenericRole::Common::Debug

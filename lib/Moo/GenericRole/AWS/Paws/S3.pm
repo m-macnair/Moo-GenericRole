@@ -1,8 +1,8 @@
-use strict; # applies to all packages defined in the file
-
+#ABSTRACT: S3 accessors and helpers
 package Moo::GenericRole::AWS::Paws::S3;
-our $VERSION = 'v1.0.8';
-##~ DIGEST : 64163010a8dbb4aeb1b60971e269d4ed
+our $VERSION = 'v1.0.11';
+##~ DIGEST : 03e28075f9a67bfa7e7b9e584d641c41
+use strict;
 use 5.006;
 use warnings;
 use Paws;

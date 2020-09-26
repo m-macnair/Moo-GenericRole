@@ -1,9 +1,11 @@
+#ABSTRACT: do file read/write with accessors
 package Moo::GenericRole::FileIO;
-our $VERSION = 'v2.0.2';
-##~ DIGEST : 7488228815b08d0917d181900cb1e9d3
+our $VERSION = 'v2.0.5';
+##~ DIGEST : e7f85dba806a692df4b18d3e558ce173
 # ABSTRACT: persistent file IO
 use Toolbox::FileIO;
 use Moo::Role;
+with qw/Moo::GenericRole/;
 ACCESSORS: {
 	has file_handles => (
 		is      => 'rw',
@@ -14,7 +16,7 @@ ACCESSORS: {
 	);
 }
 
-# Almost but not quite cargo cultin'
+# given a path, return the file handle which may or may not have been opened already
 sub ofh {
 
 	my ( $self, $path, $c ) = @_;
@@ -29,6 +31,18 @@ sub ofh {
 		}
 	}
 	return $self->file_handles->{$path};
+
+}
+
+#flush ofh immediately
+sub hot_ofh {
+
+	my ( $self, $path ) = @_;
+	my $ofh = $self->ofh( $path );
+
+	#cargo culting like a boss
+	select( $ofh );
+	$|++;
 
 }
 

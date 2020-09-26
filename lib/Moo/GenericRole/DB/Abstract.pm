@@ -1,9 +1,12 @@
-package Moo::GenericRole::DB::Abstract;
-our $VERSION = 'v1.0.8';
-##~ DIGEST : 1b208cb75ea4346392bea021069d8505
 #ABSTRACT: use $self->dbi and sql abstract
+package Moo::GenericRole::DB::Abstract;
+our $VERSION = 'v1.0.11';
+##~ DIGEST : 0f7e831865eea5e37c2a2e06e484a4e9
+
 use Try::Tiny;
+
 use Moo::Role;
+with qw/Moo::GenericRole/;
 ACCESSORS: {
 	has sqla => (
 		is      => 'rw',
@@ -11,6 +14,11 @@ ACCESSORS: {
 		builder => '_build_abstract'
 	);
 }
+
+after new => sub {
+	my ( $self ) = @_;
+	$self->_verify_methods( [qw/dbh /] );
+};
 
 sub select {
 

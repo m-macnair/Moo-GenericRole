@@ -1,10 +1,11 @@
+# ABSTRACT : take an array or hash of $something and a key, and send to $self->$something->{$dispatch_value}
 package Moo::GenericRole::Dispatch;
 
-# ABSTRACT : take an array or hash of $something and a key, and send to $self->$something->{$dispatch_value}
 use Carp qw/confess /;
-our $VERSION = 'v1.0.9';
-##~ DIGEST : b6b4060837f125118a3519caa6e9ff4c
+our $VERSION = 'v1.0.12';
+##~ DIGEST : 49610bb9dce3f3f3476889ca8c1250c9
 use Moo::Role;
+with qw/Moo::GenericRole /;
 
 sub dispatch {
 

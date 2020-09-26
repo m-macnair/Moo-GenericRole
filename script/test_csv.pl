@@ -9,7 +9,6 @@ with qw/
   Moo::GenericRole::FileIO::CSV
   Moo::GenericRole::FileIO
   /;
-
 1;
 
 package main;

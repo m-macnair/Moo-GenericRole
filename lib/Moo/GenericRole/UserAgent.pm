@@ -1,8 +1,10 @@
+#ABSTRACT: send & recieve HTTP requests of various formats
 package Moo::GenericRole::UserAgent;
-our $VERSION = 'v1.0.9';
-##~ DIGEST : 6a6f3275020c328a426e63bfad71544d
-# Do http requests
+our $VERSION = 'v1.0.12';
+##~ DIGEST : 2bf0d3bf95cf8e4d5f63954bb7163d4c
+
 use Moo::Role;
+with qw/Moo::GenericRole/;
 ACCESSORS: {
 	has defaulttimeout => (
 		is      => 'rw',
@@ -11,11 +13,17 @@ ACCESSORS: {
 	);
 }
 
+after new => sub {
+	my ( $self ) = @_;
+	$self->_verify_methods( [qw/json /] );
+};
+
+#send json from a href and return the response object
 sub post_json {
 
 	my ( $self, $url, $q, $p ) = @_;
 	$p ||= {};
-	my $ua = $self->lwp_user_agent();
+	my $ua = $self->get_lwp_user_agent();
 	$ua->timeout( $p->{defaulttimeout} || $self->defaulttimeout() );
 	require HTTP::Request;
 	my $req = HTTP::Request->new( 'POST', $url );
@@ -26,20 +34,7 @@ sub post_json {
 
 }
 
-sub lwp_user_agent {
-
-	require LWP::UserAgent;
-	return LWP::UserAgent->new();
-
-}
-
-sub lwpuseragent {
-
-	warn "obsolete naming";
-	lwp_user_agent();
-
-}
-
+#as above but interpret the result as JSON as well
 sub post_retrieve_json {
 
 	my ( $self, $url, $q ) = @_;
@@ -60,4 +55,19 @@ sub post_retrieve_json {
 	}
 
 }
+
+sub get_lwp_user_agent {
+
+	require LWP::UserAgent;
+	return LWP::UserAgent->new();
+
+}
+
+sub lwpuseragent {
+
+	warn "obsolete naming";
+	get_lwp_user_agent();
+
+}
+
 1;

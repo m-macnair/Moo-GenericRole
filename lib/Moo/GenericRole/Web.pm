@@ -1,7 +1,9 @@
+#ABSTRACT : use CGI sensibly
 package Moo::GenericRole::Web;
-our $VERSION = 'v1.0.4';
-##~ DIGEST : 7e584713201edbfae7553de05f875c7a
+our $VERSION = 'v1.0.7';
+##~ DIGEST : 279ab5614134c52e781ca4ae6579ee3f
 use Moo::Role;
+with qw/Moo::GenericRole/;
 use Carp;
 ACCESSORS: {
 	has cgi => (

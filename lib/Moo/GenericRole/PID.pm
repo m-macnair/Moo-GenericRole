@@ -1,8 +1,10 @@
+#ABSTRACT:  do pid files - ideally with wrappers around main() calls
 package Moo::GenericRole::PID;
-our $VERSION = 'v1.0.7';
-##~ DIGEST : 8555959b6c0d6b4d42a163cca32134ee
-# do pids - ideally with wrappers around main() calls
+our $VERSION = 'v1.0.10';
+##~ DIGEST : 376fec5a1780957fe83f83c3d5774125
+
 use Moo::Role;
+with qw/Moo::GenericRole/;
 ACCESSORS: {
 	has pid_root => (
 		is      => 'rw',

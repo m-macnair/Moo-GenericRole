@@ -1,6 +1,6 @@
 # ABSTRACT : perform and preserve command line interaction
 package Moo::GenericRole::CombinedCLI;
-our $VERSION = 'v1.0.4';
+our $VERSION = 'v1.0.6';
 ##~ DIGEST : f405e47e67852188f6147a2128578656
 use Moo::Role;
 ACCESSORS: {

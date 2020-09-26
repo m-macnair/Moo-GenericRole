@@ -2,8 +2,8 @@
 package Moo::GenericRole::FileIO::CSV;
 use strict;
 use warnings;
-our $VERSION = 'v1.0.2';
-##~ DIGEST : 6b4923ab5a0d8f546eaac92e033782bb
+our $VERSION = 'v1.0.4';
+##~ DIGEST : f0f545adb3ad3fb8dc7860068bf748cd
 use Moo::Role;
 ACCESSORS: {
 	has csv => (
@@ -50,7 +50,7 @@ sub sub_on_csv {
 	die "sub isn't a code reference" unless ( ref( $sub ) eq 'CODE' );
 	open( my $ifh, "<:encoding(UTF-8)", $path )
 	  or die "Failed to open [$path] : $!";
-	my $csv = getcsv();
+	my $csv = $self->csv();
 	while ( my $colref = $csv->getline( $ifh ) ) {
 		if ( index( $colref->[0], '#' ) == 0 ) {
 			next;
@@ -65,7 +65,6 @@ sub sub_on_csv {
 sub aref_to_csv {
 
 	my ( $self, $row, $path ) = @_;
-
 	$self->csv->print( $self->ofh( $path ), $row );
 
 }
@@ -75,24 +74,27 @@ sub href_to_csv {
 
 	my ( $self, $row, $path ) = @_;
 	my $column_order = $self->_path_column_header_orders->{$path} || $self->_init_path_columns( $row, $path );
-
 	$self->csv->print( $self->ofh( $path ), [ @{$row}{@{$column_order}} ] );
 
 }
 
 #given an sth and a path, do the right thing with headers (slower)
 sub sth_href_to_csv {
+
 	my ( $self, $sth, $path ) = @_;
 	while ( my $row = $sth->fetchrow_hashref() ) {
 		$self->href_to_csv( $row, $path );
 	}
+
 }
 
 sub sth_aref_to_csv {
+
 	my ( $self, $sth, $path ) = @_;
 	while ( my $row = $sth->fetchrow_arrayref() ) {
 		$self->aref_to_csv( $row, $path );
 	}
+
 }
 
 sub _init_path_columns {
@@ -126,10 +128,8 @@ sub _get_column_order_for_href {
 				}
 			}
 			push( @junkeys, $key );
-
 		}
 	}
-
 	push( @{$return}, sort ( @junkeys ) );
 	return $return;
 

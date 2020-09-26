@@ -1,7 +1,7 @@
 use strict;
 
 package Moo::GenericRole::Common::Debug;
-our $VERSION = 'v1.0.6';
+our $VERSION = 'v1.0.8';
 ##~ DIGEST : b70cfdd10cd00a39092afdcca136f9ae
 use Moo::Role;
 use 5.006;

@@ -1,10 +1,12 @@
-package Moo::GenericRole::UUID;
-
 # ABSTRACT : hold a persistent UUID and create them as a method for whatever
+package Moo::GenericRole::UUID;
+our $VERSION = 'v1.0.12';
+##~ DIGEST : 7c1d7828243904d5226bc059abc6e317
+
 use Moo::Role;
+with qw/Moo::GenericRole/;
 use Data::UUID;
-our $VERSION = 'v1.0.9';
-##~ DIGEST : 9784844d8e6a6193a98ea6a993d35ffd
+
 ACCESSORS: {
 	has uuid => (
 		is      => 'rw',
@@ -15,8 +17,7 @@ ACCESSORS: {
 
 sub getuuid {
 
-	require Carp;
-	Carp::cluck( "use get_uuid instead pls" );
+	cluck( "Obsolete method name" );
 	return get_uuid();
 
 }
