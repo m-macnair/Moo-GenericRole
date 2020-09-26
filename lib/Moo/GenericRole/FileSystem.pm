@@ -1,7 +1,7 @@
 # ABSTRACT: Common file system tasks
 package Moo::GenericRole::FileSystem;
-our $VERSION = 'v1.0.14';
-##~ DIGEST : d6300f47b48cf7599e4cb4037296d922
+our $VERSION = 'v1.0.15';
+##~ DIGEST : 5dd67eb9994b12973d21c0dcd4989472
 
 use Moo::Role;
 with qw/Moo::GenericRole/;
@@ -55,9 +55,9 @@ sub check_path {
 	#tested
 	my ( $self, $path, $value_name ) = @_;
 	$value_name = _value_name( $value_name );
-	confess( "check_path  $value_name value is null" ) unless $path;
-	confess( "check_path  $value_name path [$path] does not exist" ) unless -e $path;
-
+	confess( "check_path $value_name value is null" )                 unless $path;
+	confess( "check_path $value_name path [$path] does not exist" )   unless -e $path;
+	confess( "check_path $value_name path [$path] is not readable " ) unless -r $path;
 }
 
 sub check_file {
@@ -65,6 +65,7 @@ sub check_file {
 	$value_name = _value_name( $value_name );
 	$self->check_path( $path, $value_name );
 	confess( "checkfile $value_name path [$path] is not a file " ) unless -f $path;
+
 }
 
 sub check_dir {
