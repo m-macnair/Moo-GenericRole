@@ -1,12 +1,12 @@
 # ABSTRACT : perform and preserve command line interaction
 package Moo::GenericRole::CombinedCLI;
-our $VERSION = 'v1.0.11';
-##~ DIGEST : 494d79bfecc8be625d45e621145fdda8
+our $VERSION = 'v1.1.1';
+##~ DIGEST : c2956b94ebe3afa3f107af6b4265b40f
 
 require Getopt::Long;
 require Config::Any::Merge;
 require Hash::Merge;
-
+use Carp;
 use Moo::Role;
 with qw/Moo::GenericRole/;
 
@@ -70,6 +70,33 @@ sub get_combined_config {
 	$self->check_config( $return, $required );
 
 	return $return; #return!
+
+}
+
+#stolen from massh2.pl
+
+sub prompt_for {
+	my ( $self, $prompt, $default, $opt ) = @_;
+
+	$opt ||= {};
+	my $promptstring = $prompt;
+	$promptstring .= " [$default]" if $default;
+	$promptstring .= ' :';
+	require Term::ReadKey;
+	while ( 1 ) {
+		print $promptstring;
+		$| = 1; #flush
+		Term::ReadKey::ReadMode( 'noecho' ) if $opt->{hidden};
+		my $res = Term::ReadKey::ReadLine( 0 );
+		if ( $opt->{hidden} ) {
+			print $/;
+			Term::ReadKey::ReadMode( 'restore' );
+		}
+		chomp( $res );
+		$res = $res || $default;
+		return $res if $res;
+		print "$/must provide a value$/" unless $opt->{optional};
+	}
 
 }
 
