@@ -1,7 +1,7 @@
 #ABSTRACT: overwrites/extensions to DB for maria/mysql
 package Moo::GenericRole::DB::MariaMysql;
-our $VERSION = 'v1.0.11';
-##~ DIGEST : bb007293382a2639622fc9eda57bf918
+our $VERSION = 'v1.0.12';
+##~ DIGEST : 10fbde24dd42f12c37327d05ec731291
 use Moo::Role;
 use Carp;
 around "last_insert_id" => sub {
@@ -29,6 +29,32 @@ ACCESSORS: {
 	);
 }
 
+=head3 sub_on_database
+	when given a href def, set $self->dbh to said dbh; then do some sub
+
+=cut
+
+sub sub_on_database {
+	my ( $self, $sub, $def ) = @_;
+	Carp::confess( "Invalid sub provided" ) unless ref( $sub ) eq 'CODE';
+
+	#this will be different in other sqls
+	$self->demand_params(
+		$def,
+		[
+			qw/
+			  host
+			  user
+			  pass
+			  driver
+			  /
+		]
+	);
+	$self->set_dbh_from_def( $def );
+	&$sub();
+
+}
+
 =head3 sub_on_db_tables
 	Execute code ref on all tables, optionally with a where clause
 =cut
@@ -38,7 +64,7 @@ sub sub_on_db_tables {
 	my ( $self, $sub, $c ) = @_;
 	$c ||= {};
 	Carp::confess( "Invalid sub provided" ) unless ref( $sub ) eq 'CODE';
-	my $sth = $self->query( "show tables " . $c->{show_suffix} || '' );
+	my $sth = $self->query( "show tables " . ( $c->{show_suffix} || '' ) );
 	while ( my $row = $sth->fetchrow_arrayref() ) {
 		last unless &$sub( $row->[0], $c );
 	}
@@ -53,6 +79,19 @@ sub sub_on_describe_table {
 	Carp::confess( "Invalid sub provided" ) unless ref( $sub ) eq 'CODE';
 	Carp::confess( "no table" ) unless $table;
 	my ( $sth ) = $self->query( "describe `$table`" );
+	while ( my $row = $sth->fetchrow_hashref() ) {
+		last unless &$sub( $row, $c );
+	}
+	return 1;
+
+}
+
+sub sub_on_show_table_index {
+	my ( $self, $sub, $table, $c ) = @_;
+	$c ||= {};
+	Carp::confess( "Invalid sub provided" ) unless ref( $sub ) eq 'CODE';
+	Carp::confess( "no table" ) unless $table;
+	my ( $sth ) = $self->query( "show index from `$table`" );
 	while ( my $row = $sth->fetchrow_hashref() ) {
 		last unless &$sub( $row, $c );
 	}

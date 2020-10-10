@@ -1,7 +1,7 @@
 #ABSTRACT: Baseline for accessor based database interaction
 package Moo::GenericRole::DB;
-our $VERSION = 'v1.0.12';
-##~ DIGEST : 9258d0f7873da1fd3c6b6a690befedc0
+our $VERSION = 'v1.0.13';
+##~ DIGEST : c0b34cad00382dfec47ff96085dca3bf
 use Moo::Role;
 with qw/Moo::GenericRole/;
 use Carp;
@@ -36,6 +36,41 @@ sub _set_dbh {
 	$self->dbh( $dbh );
 	return 1;
 
+}
+
+=head3 sub_on_database_by_json_file
+	Load connection details from a json string and do something - useful for loops
+
+=cut
+
+sub sub_on_database_by_json_file {
+	my ( $self, $sub, $path, $extra ) = @_;
+	$extra ||= {};
+	my $def = $self->json_load_file( $path );
+	$def = {%{$def}, %{$extra}};
+	$self->sub_on_database( $sub, $def );
+
+}
+
+sub set_dbh_from_def {
+	my ( $self, $def ) = @_;
+	$self->demand_params(
+		$def,
+		[
+			qw/
+			  driver
+			  /
+		]
+	);
+	my $cstring = "DBI:$def->{driver}:";
+
+	for ( qw/database host port / ) {
+		$cstring .= "$_=" . ( defined( $def->{$_} ) ? "$def->{$_};" : ";" );
+	}
+
+	my $dbh = DBI->connect( $cstring, $def->{user}, $def->{pass} ) or die $DBI::errstr;
+	$self->dbh( $dbh );
+	return 1;
 }
 
 # prepare, execute and return sth

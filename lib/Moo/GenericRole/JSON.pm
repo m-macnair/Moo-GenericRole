@@ -1,7 +1,7 @@
 #ABSTRACT: enable $self->json and sugar
 package Moo::GenericRole::JSON;
-our $VERSION = 'v1.0.12';
-##~ DIGEST : ef2141ff9cbd8e83b44b48706a19adcd
+our $VERSION = 'v1.0.13';
+##~ DIGEST : 27bc0537638ecaa85f2cfc5c14e57a20
 use Moo::Role;
 with qw/Moo::GenericRole/;
 use JSON;
@@ -47,6 +47,15 @@ sub json_load_file {
 		confess( "Failed - $_" );
 	};
 	return $struct;
+
+}
+
+sub json_write_href {
+	my ( $self, $path, $href ) = @_;
+	my $json_string = $self->json->encode( $href );
+	my $ofh         = $self->ofh( $path );
+	print $ofh $json_string;
+	$self->closefhs( [$path] );
 
 }
 

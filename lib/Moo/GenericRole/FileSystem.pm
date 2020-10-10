@@ -1,7 +1,7 @@
 # ABSTRACT: Common file system tasks
 package Moo::GenericRole::FileSystem;
-our $VERSION = 'v1.0.15';
-##~ DIGEST : 5dd67eb9994b12973d21c0dcd4989472
+our $VERSION = 'v1.0.16';
+##~ DIGEST : b16159f9c6123f005efed19c63a08f5c
 
 use Moo::Role;
 with qw/Moo::GenericRole/;
@@ -15,6 +15,7 @@ ACCESSORS: {
 		lazy    => 1,
 		default => sub {
 			my ( $self ) = @_;
+
 			$self->build_tmp_dir();
 		}
 	);
@@ -26,6 +27,7 @@ ACCESSORS: {
 			return "$ENV{HOME}/tmp/";
 		}
 	);
+
 }
 
 #get a unique temporary directory path
@@ -45,6 +47,7 @@ sub build_tmp_dir {
 
 	my ( $self, $root ) = @_;
 	my $path = $self->build_tmp_dir_path( $root );
+
 	$self->make_path( $path );
 	return $path;
 
@@ -239,6 +242,16 @@ sub make_path {
 
 		return $path;
 	}
+
+}
+
+sub make_paths {
+	my ( $self, $paths ) = @_;
+	Carp::confess( "Not an arref of paths?" ) unless ref( $paths ) eq 'ARRAY';
+	for my $path ( @{$paths} ) {
+		$self->make_path( $path );
+	}
+	return 1;
 
 }
 
