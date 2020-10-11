@@ -1,7 +1,7 @@
 #ABSTRACT : use CGI sensibly
 package Moo::GenericRole::Web;
-our $VERSION = 'v1.1.1';
-##~ DIGEST : 886138a7764319f904359be30fcefd4c
+our $VERSION = 'v1.1.2';
+##~ DIGEST : 81ab881c26b9346a10da23dc8ad9122d
 use Moo::Role;
 with qw/Moo::GenericRole/;
 use Carp;
@@ -42,15 +42,13 @@ sub sub_as_json_api {
 		if ( ref( $response_struct ) eq 'HASH' ) {
 
 			#de nada
-			warn "all good";
+
 		} else {
 			$response_struct = {fail => 'unhandled error',};
 		}
 	} else {
 		$response_struct = {fail => 'empty request'};
 	}
-	use Data::Dumper;
-	warn "restruct : " . Dumper( $response_struct );
 
 	#try/catch
 	my $response_string = $self->json->encode( $response_struct );
