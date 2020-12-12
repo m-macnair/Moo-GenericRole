@@ -1,7 +1,7 @@
 # ABSTRACT : perform and preserve command line interaction
 package Moo::GenericRole::CombinedCLI;
-our $VERSION = 'v1.1.1';
-##~ DIGEST : c2956b94ebe3afa3f107af6b4265b40f
+our $VERSION = 'v1.2.6';
+##~ DIGEST : 96777d764158613c33f033ff0a5eed14
 
 require Getopt::Long;
 require Config::Any::Merge;
@@ -9,13 +9,6 @@ require Hash::Merge;
 use Carp;
 use Moo::Role;
 with qw/Moo::GenericRole/;
-
-ACCESSORS: {
-	has cfg => (
-		is   => 'rw',
-		lazy => 1,
-	);
-}
 
 after new => sub {
 	my ( $self ) = @_;
@@ -27,9 +20,12 @@ sub get_config {
 	my $self = shift;
 	my $cfg  = $self->get_combined_config( @_ );
 
+	# in Common::Core now
 	$self->cfg( $cfg );
 
 }
+
+# TODO pure href driven version
 
 =head3 get_combined_config
 	given an arref of required, an arref of optional with some defaults and a href of optional switches, generate a configuration href which does what I expect it to do
@@ -42,34 +38,78 @@ sub get_combined_config {
 	$required ||= [];
 	$optional ||= [];
 	$p        ||= {};
+
+	#always support help as a flag
+	push( @{$p->{flags}}, 'help' );
 	my $default_values = $p->{'default'} || {};
 
-	push( @{$optional}, qw/config_file config_dir cfg / );
-	my $cli_config = {};
-	Getopt::Long::Configure( qw( default ) );
+	push( @{$optional}, qw/config_file config_dir cfg help / );
+
+	my $cli_values = $self->get_cli_values( $required, $optional, $p );
+
+	my $external_config = $self->config_file_dir( $cli_values );
+
+	#hash::merge takes 'undef' as valid, which is not what we want when overwriting from config files
+	for my $key ( keys( %{$cli_values} ) ) {
+		delete( $cli_values->{$key} ) unless defined( $cli_values->{$key} );
+	}
+
+	if ( $cli_values->{help} || ( @{$required} && @ARGV == 0 ) ) {
+		print "No required fields provided! " if ( @{$required} && @ARGV == 0 );
+		print "Usage:";
+		print $self->format_usage( $p->{required}, $p->{optional} );
+		exit;
+	} else {
+
+		#overwrite hard coded defaults with configuration file(s)
+		my $return = Hash::Merge::merge( $default_values, $external_config );
+
+		#overwrite the above with explicit command line settings
+		$return = Hash::Merge::merge( $return, $cli_values );
+
+		#fitch a pit if a required field is missing
+		eval { $self->check_config( $return, $required ); } or do {
+			my $error = $@ || 'Unknown failure';
+			print "$/### Final configuration did not provide a required value ! ###";
+			print $self->format_usage( $p->{required}, $p->{optional} );
+			print "[$error]";
+			exit;
+		};
+
+		return $return; #return!
+	}
+}
+
+sub get_cli_values {
+	my ( $self, $required, $optional, $p ) = @_;
+
+	$required ||= [];
+	$optional ||= [];
+	$p        ||= {};
+
+	my $cli_values = {};
 	my @options;
 
 	#generate the value types and reference pointers required by GetOptions
 	for my $key ( _explode_array( [ @{$required}, @{$optional} ] ) ) {
-		push( @options, "$key=s" );
-		push( @options, \$$cli_config{$key} );
+
+		#expensive, but what the hey
+		#without a data type (which sensibleness suggests should always be a string anyway) , the key is considered a flag
+		if ( grep( /^$key$/, @{$p->{flags}} ) ) {
+			push( @options, "$key" );
+		} else {
+			push( @options, "$key=s" );
+		}
+		push( @options, \$$cli_values{$key} );
 	}
 
-	#capture the arguments
-	Getopt::Long::GetOptions( @options )
-	  or confess( "Error in command line arguments : $!" );
+	#capture the arguments to command line separately
+	my $array = [@ARGV];
 
-	my $external_config = $self->config_file_dir( $cli_config );
-
-	#hash::merge takes 'undef' as valid, which is not what we want when overwriting from config files
-	for my $key ( keys( %{$cli_config} ) ) {
-		delete( $cli_config->{$key} ) unless defined( $cli_config->{$key} );
-	}
-
-	my $return = Hash::Merge::merge( $external_config, $cli_config, $default_values );
-	$self->check_config( $return, $required );
-
-	return $return; #return!
+	#permit multiple runs
+	Getopt::Long::Configure( 'pass_through' );
+	Getopt::Long::GetOptionsFromArray( $array, @options );
+	return $cli_values;
 
 }
 
@@ -115,7 +155,6 @@ sub check_config {
 
 			#arrays in required mean 'one of'
 			if ( $ref eq 'ARRAY' ) {
-				warn "here";
 				for my $subcheck ( @{$key} ) {
 
 					if ( defined( $href->{$subcheck} ) ) {
@@ -124,14 +163,14 @@ sub check_config {
 						next THISKEY;
 					}
 				}
-				confess( "None of [" . join( ',', @{$key} ) . "] provided through configuration" );
+				confess( "None of [ Required ] keys [" . join( ',', @{$key} ) . "] provided!" );
 			} elsif ( $ref ) {
 
-				confess( "Invalid reference [$ref] provided in check_config - can't parse" );
+				confess( "Invalid reference [$ref] provided in check_config - can't parse!" );
 			} else {
 
 				unless ( defined( $href->{$key} ) ) {
-					confess( "$/Required key [$key] Not provided through configuration.$/$/" );
+					confess( qq{[ Required ] key "-$key" is missing!$/$/} );
 				}
 
 				# 				warn "fine";
@@ -139,6 +178,8 @@ sub check_config {
 			}
 		}
 	}
+
+	return 1;
 
 }
 
@@ -150,7 +191,7 @@ sub config_file_dir {
 	$c ||= {};
 	my $return      = {};
 	my $dir_config  = $self->config_dir( $c->{config_dir} );
-	my $file_config = $self->config_file( $c->{config_file} );
+	my $file_config = $self->config_file( $c->{config_file} || $c->{cfg} );
 	$return = Hash::Merge::merge( $dir_config, $file_config );
 
 	return $return; # return!
@@ -206,12 +247,64 @@ sub _explode_array {
 	my @return;
 	for ( @{$array} ) {
 		if ( ref( $_ ) ) {
-			push( @return, explode_array( $_ ) );
+			push( @return, _explode_array( $_ ) );
 		} else {
 			push( @return, $_ );
 		}
 	}
 	return @return;
+}
+
+sub usage_string {
+	my ( $self, $p ) = @_;
+	my $string;
+	if ( $p->{usage} ) {
+		$string .= "Usage :$/$/$p->{usage}$/";
+	} else {
+		$string .= "No usage details available.";
+	}
+	return $string;
+}
+
+sub builtin_cli_usage {
+	return {
+		config_dir  => "Path to a directory containing any number of configuration files readable by Config::Any.$/\t\t\tOverwritten by contents of -config_file if present, and explicit command line options.",
+		config_file => "Path to a configuration file readable by Config::Any.$/\t\t\tOverwritten by explicit command line options.",
+		cfg         => "-config_file with fewer keystrokes.",
+		help        => "Show usage."
+	};
+}
+
+# TODO unify tab stops
+sub format_usage {
+	my ( $self, $required, $optional ) = @_;
+	my $string;
+	$string .= "$/$/";
+
+	if ( $required && %{$required} ) {
+		$string .= "[ Required ]$/$/";
+		$string .= $self->format_usage_hrefs( $required );
+		$string .= "$/$/";
+	}
+
+	#$/[optional] is read as an arref
+
+	$string .= "[ Optional ] $/$/";
+	$string .= $self->format_usage_hrefs( $optional ) if ( $optional && %{$optional} );
+	$string .= $self->format_usage_hrefs( $self->builtin_cli_usage() );
+	$string .= "$/$/";
+
+	return $string;
+
+}
+
+sub format_usage_hrefs {
+	my ( $self, $href ) = @_;
+	my $string = '';
+	for my $key ( sort( keys( %{$href} ) ) ) {
+		$string .= "-$key\t:\t$href->{$key}$/";
+	}
+	return $string;
 }
 
 1;

@@ -1,7 +1,7 @@
 #ABSTRACT: use $self->dbi and sql abstract
 package Moo::GenericRole::DB::Abstract;
-our $VERSION = 'v1.0.11';
-##~ DIGEST : 0f7e831865eea5e37c2a2e06e484a4e9
+our $VERSION = 'v1.0.12';
+##~ DIGEST : e304f896b93ec5f39b292ae27e5dcbe0
 
 use Try::Tiny;
 
@@ -69,7 +69,8 @@ sub _shared_query {
 
 	my ( $self, $Q, $P ) = @_;
 	$P ||= [];
-	print "$Q with" . Data::Dumper::Dumper( \@{$P} );
+
+	# 	print "$Q with" . Data::Dumper::Dumper( \@{$P} );
 	my $sth = $self->dbh->prepare( $Q ) or die "failed to prepare statement :/";
 	try {
 		$sth->execute( @{$P} ) or die $!;

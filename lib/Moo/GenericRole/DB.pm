@@ -1,7 +1,7 @@
 #ABSTRACT: Baseline for accessor based database interaction
 package Moo::GenericRole::DB;
-our $VERSION = 'v1.0.13';
-##~ DIGEST : c0b34cad00382dfec47ff96085dca3bf
+our $VERSION = 'v1.0.14';
+##~ DIGEST : e389adad0672865f1fea8b02d2823f43
 use Moo::Role;
 with qw/Moo::GenericRole/;
 use Carp;
@@ -12,14 +12,13 @@ ACCESSORS: {
 		default => sub {
 			my $self = shift;
 
-			#this will intentionally fail on init; but the structure will be universal
 			return $self->_set_dbh();
 		}
 	);
 	has _transaction_counter => (
 		is      => 'rw',
 		lazy    => 1,
-		default => sub { my $self = shift; return $self->_set_dbh() }
+		default => sub { return 0; }
 	);
 	has _statement_limit => (
 		is      => 'rw',
@@ -52,8 +51,13 @@ sub sub_on_database_by_json_file {
 
 }
 
-sub set_dbh_from_def {
-	my ( $self, $def ) = @_;
+=head3 dbh_from_def
+	From arbitrary href, do the $right thing to create a dbh
+=cut
+
+sub dbh_from_def {
+	my ( $self, $def, $opt ) = @_;
+
 	$self->demand_params(
 		$def,
 		[
@@ -69,6 +73,12 @@ sub set_dbh_from_def {
 	}
 
 	my $dbh = DBI->connect( $cstring, $def->{user}, $def->{pass} ) or die $DBI::errstr;
+	return $dbh;
+}
+
+sub set_dbh_from_def {
+	my ( $self, $def, $opt ) = @_;
+	my $dbh = $self->dbh_from_def( $def, $opt );
 	$self->dbh( $dbh );
 	return 1;
 }

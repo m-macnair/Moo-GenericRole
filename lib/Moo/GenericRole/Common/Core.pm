@@ -2,18 +2,30 @@
 #ABSTRACT: things I rely on, but aren't universally necessary
 package Moo::GenericRole::Common::Core;
 use strict;
-our $VERSION = 'v1.0.9';
-##~ DIGEST : 71bc4a44c32c09a0c470e347850d2eb9
+our $VERSION = 'v1.1.1';
+##~ DIGEST : 80f49451f5225c98e3279774a7a574b7
 use Moo::Role;
 use 5.006;
 use Data::Dumper;
 use warnings;
 use Carp qw/confess/;
 
+ACCESSORS: {
+	has cfg => (
+		is   => 'rw',
+		lazy => 1,
+
+		#required for use in Moose which checks for defaults in lazy objects
+		default => sub { return {} },
+	);
+}
+
 =head1 NAME
 	Common Core - my way of doing things
 =head1 VERSION & HISTORY
 	<feature>.<patch>
+	1.1.0 - 2020-12-12
+		moved cfg in from CombinedCLI
 	1.0.0 - 2020-07-26
 		The Mk1
 =cut
