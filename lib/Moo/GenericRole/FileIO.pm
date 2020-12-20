@@ -1,9 +1,8 @@
 #ABSTRACT: do file read/write with accessors
 package Moo::GenericRole::FileIO;
-our $VERSION = 'v2.0.6';
-##~ DIGEST : 912e71da1318ebcebb9931bf979fe62d
+our $VERSION = 'v2.0.7';
+##~ DIGEST : ad6380fde05770a5f09249d52e05a4eb
 # ABSTRACT: persistent file IO
-use Toolbox::FileIO;
 use Moo::Role;
 with qw/Moo::GenericRole/;
 ACCESSORS: {

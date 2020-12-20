@@ -1,7 +1,7 @@
 #ABSTRACT: overwrites/extensions to DB for maria/mysql
 package Moo::GenericRole::DB::MariaMysql;
-our $VERSION = 'v1.0.12';
-##~ DIGEST : 10fbde24dd42f12c37327d05ec731291
+our $VERSION = 'v1.0.14';
+##~ DIGEST : b941666ade4d5e49f8b398d52084fa9a
 use Moo::Role;
 use Carp;
 around "last_insert_id" => sub {
@@ -154,7 +154,7 @@ sub mysqldump_string {
 
 	my ( $self,         $args,       $stack )      = @_;
 	my ( $start_string, $mid_string, $end_string ) = $self->_shared_mysql_string( $args, $stack );
-	$start_string = $self->mysqldump_bin . $start_string;
+	$start_string = $self->mysqldump_bin . " $start_string";
 	if ( wantarray() ) {
 		return ( $start_string, $mid_string, $end_string );
 	} else {
@@ -168,8 +168,9 @@ sub _shared_mysql_string {
 
 	$stack ||= [];
 	my $pass_string;
-	if ( $args->{pass} ) {
-		$pass_string = "-p$args->{pass} ";
+	if ( $args->{pass} || $args->{password} ) {
+
+		$pass_string = "-p'" . ( $args->{pass} || $args->{password} ) . "' ";
 	}
 
 	my $host_string = '';
@@ -179,12 +180,13 @@ sub _shared_mysql_string {
 
 	my $port_string = '';
 	if ( $args->{port} ) {
-		$port_string = "-p$args->{port} ";
+		$port_string = "-P $args->{port} ";
 	}
 	my $start_string = " -u $args->{user}\t$pass_string\t$host_string\t$port_string ";
 	my $mid_string   = join( "\t", @{$stack} ) || '';
 	my $table        = $args->{table} || '';
-	my $end_string   = "\t$args->{db}\t$table\t";
+	my $db           = $args->{db} || $args->{database};
+	my $end_string   = "\t$db\t$table\t";
 
 	return ( $start_string, $mid_string, $end_string );
 

@@ -1,11 +1,14 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
+
+# TODO remove
 use Toolbox::CombinedCLI;
 
 package TestObj;
 use Moo;
 with qw/
+
   Moo::GenericRole::AWS::Paws
   Moo::GenericRole::AWS::Paws::S3
   /;

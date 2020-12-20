@@ -1,11 +1,13 @@
 # ABSTRACT : perform and preserve command line interaction
 package Moo::GenericRole::CombinedCLI;
-our $VERSION = 'v1.2.6';
-##~ DIGEST : 96777d764158613c33f033ff0a5eed14
+our $VERSION = 'v1.2.7';
+##~ DIGEST : da0d80043ce4260a435e928f44cc4e8d
 
 require Getopt::Long;
 require Config::Any::Merge;
-require Hash::Merge;
+
+#needs to be a use in Ubuntu (!?)
+use Hash::Merge;
 use Carp;
 use Moo::Role;
 with qw/Moo::GenericRole/;

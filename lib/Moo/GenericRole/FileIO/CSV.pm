@@ -1,9 +1,9 @@
-#ABSTRACT : Toolbox::CSV mk2
+#ABSTRACT : Do common things with CSV files
 package Moo::GenericRole::FileIO::CSV;
 use strict;
 use warnings;
-our $VERSION = 'v1.0.4';
-##~ DIGEST : f0f545adb3ad3fb8dc7860068bf748cd
+our $VERSION = 'v1.0.5';
+##~ DIGEST : 43aa3bd127f0403310d4c6f41e5f73a0
 use Moo::Role;
 ACCESSORS: {
 	has csv => (
@@ -59,6 +59,23 @@ sub sub_on_csv {
 	}
 	close( $ifh ) or die "Failed to close [$path] : $!";
 
+}
+
+sub get_csv_column {
+	my ( $self, $path, $column ) = @_;
+	$self->check_file( $path );
+	$column ||= 0;
+	my $return;
+	$self->sub_on_csv(
+		sub {
+			my ( $row ) = @_;
+			if ( $row->[$column] ) {
+				push( @{$return}, $row->{$column} );
+			}
+		},
+		$path
+	);
+	return $return;
 }
 
 #given a row and a path, do the right thing

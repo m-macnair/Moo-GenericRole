@@ -1,7 +1,7 @@
 # ABSTRACT: Common file system tasks
 package Moo::GenericRole::FileSystem;
-our $VERSION = 'v1.0.16';
-##~ DIGEST : b16159f9c6123f005efed19c63a08f5c
+our $VERSION = 'v1.0.17';
+##~ DIGEST : 3f20958a15972fbb808d2fb8e31c6e04
 
 use Moo::Role;
 with qw/Moo::GenericRole/;
@@ -255,6 +255,12 @@ sub make_paths {
 
 }
 
+=head3 sub_on_directory_files
+
+	Given a sub and a directory, pass the sub each file in the directory until the sub returns falsey, then jump out of the search
+
+=cut
+
 sub sub_on_directory_files {
 
 	#tested
@@ -262,20 +268,21 @@ sub sub_on_directory_files {
 	confess( "First parameter to subonfiles was not a code reference" ) unless ref( $sub ) eq 'CODE';
 	$self->check_dir( $directory );
 	require File::Find;
-	OUTERFIND: {
-
-		File::Find::find(
-			{
-				wanted => sub {
-					return unless -f $File::Find::name;
-					my $full_path = $self->abs_path( $File::Find::name );
-					last OUTERFIND unless ( &$sub( $full_path ) );
-				},
-				no_chdir => 1,
+	File::Find::find(
+		{
+			wanted => sub {
+				return unless -f $File::Find::name;
+				my $full_path = $self->abs_path( $File::Find::name );
+				goto Moo_GenericRole_FileSystem_sub_on_directory_files_end unless ( &$sub( $full_path ) );
 			},
-			$directory
-		);
-	}
+			no_chdir => 1,
+		},
+		$directory
+	);
+
+	Moo_GenericRole_FileSystem_sub_on_directory_files_end:
+	return;
+
 }
 
 =head3 abs_path
