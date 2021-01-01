@@ -2,8 +2,8 @@
 package Moo::GenericRole::FileIO::CSV;
 use strict;
 use warnings;
-our $VERSION = 'v1.0.5';
-##~ DIGEST : 43aa3bd127f0403310d4c6f41e5f73a0
+our $VERSION = 'v1.0.6';
+##~ DIGEST : b2b4d31a47ee50c106a0e517a50cb751
 use Moo::Role;
 ACCESSORS: {
 	has csv => (
@@ -90,6 +90,7 @@ sub aref_to_csv {
 sub href_to_csv {
 
 	my ( $self, $row, $path ) = @_;
+
 	my $column_order = $self->_path_column_header_orders->{$path} || $self->_init_path_columns( $row, $path );
 	$self->csv->print( $self->ofh( $path ), [ @{$row}{@{$column_order}} ] );
 
@@ -119,7 +120,7 @@ sub _init_path_columns {
 	my ( $self, $p, $path ) = @_;
 	if ( ref( $p ) eq 'HASH' ) {
 		$self->_path_column_header_orders->{$path} = $self->_get_column_order_for_href( $p );
-	} elsif ( ref( $p ) eq 'HASH' ) {
+	} elsif ( ref( $p ) eq 'ARRAY' ) {
 		$self->_path_column_header_orders->{$path} = $p;
 	}
 	$self->aref_to_csv( $self->_path_column_header_orders->{$path}, $path ) if $self->print_headers();

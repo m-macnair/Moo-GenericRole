@@ -1,7 +1,7 @@
 #ABSTRACT: Baseline for accessor based database interaction
 package Moo::GenericRole::DB;
-our $VERSION = 'v1.0.14';
-##~ DIGEST : e389adad0672865f1fea8b02d2823f43
+our $VERSION = 'v1.0.15';
+##~ DIGEST : 80343e9b4b04ea51cf5d680fd8daea02
 use Moo::Role;
 with qw/Moo::GenericRole/;
 use Carp;
@@ -58,6 +58,18 @@ sub sub_on_database_by_json_file {
 sub dbh_from_def {
 	my ( $self, $def, $opt ) = @_;
 
+	#'do what I meant'
+	my $replacements = {
+		db   => 'database',
+		pass => 'password',
+	};
+
+	for my $key ( keys( %{$replacements} ) ) {
+		if ( $def->{$key} ) {
+			$def->{$replacements->{$key}} = $def->{$key};
+		}
+	}
+	$def->{database} ||= '';
 	$self->demand_params(
 		$def,
 		[
@@ -66,13 +78,14 @@ sub dbh_from_def {
 			  /
 		]
 	);
-	my $cstring = "DBI:$def->{driver}:";
+	my $dsn = "DBI:$def->{driver}:$def->{database};";
 
-	for ( qw/database host port / ) {
-		$cstring .= "$_=" . ( defined( $def->{$_} ) ? "$def->{$_};" : ";" );
+	for ( qw/ host port / ) {
+
+		$dsn .= "$_=" . ( defined( $def->{$_} ) ? "$def->{$_};" : ";" );
 	}
 
-	my $dbh = DBI->connect( $cstring, $def->{user}, $def->{pass} ) or die $DBI::errstr;
+	my $dbh = DBI->connect( $dsn, $def->{user}, $def->{password} ) or die $DBI::errstr;
 	return $dbh;
 }
 

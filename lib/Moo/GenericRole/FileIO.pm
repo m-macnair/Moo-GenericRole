@@ -1,7 +1,7 @@
 #ABSTRACT: do file read/write with accessors
 package Moo::GenericRole::FileIO;
-our $VERSION = 'v2.0.7';
-##~ DIGEST : ad6380fde05770a5f09249d52e05a4eb
+our $VERSION = 'v2.0.8';
+##~ DIGEST : 454a32cbf2adbc9d68333448fdb7199a
 # ABSTRACT: persistent file IO
 use Moo::Role;
 with qw/Moo::GenericRole/;
@@ -63,5 +63,16 @@ sub closefhs {
 		undef( $self->file_handles->{$path} );
 	}
 
+}
+
+=head3 slurp_file
+	Load and use File::Slurp for the only thing I ever do with it
+=cut
+
+sub slurp_file {
+	my ( $self, $path ) = @_;
+	$self->check_file( $path );
+	require File::Slurp;
+	return File::Slurp::slurp( $path );
 }
 1;
