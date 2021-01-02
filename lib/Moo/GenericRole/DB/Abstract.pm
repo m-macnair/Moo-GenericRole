@@ -1,10 +1,8 @@
 #ABSTRACT: use $self->dbi and sql abstract
 package Moo::GenericRole::DB::Abstract;
-our $VERSION = 'v1.0.12';
-##~ DIGEST : e304f896b93ec5f39b292ae27e5dcbe0
-
+our $VERSION = 'v1.0.13';
+##~ DIGEST : 83b081cdab9dc975f53c1c0d4011d671
 use Try::Tiny;
-
 use Moo::Role;
 with qw/Moo::GenericRole/;
 ACCESSORS: {
@@ -14,16 +12,15 @@ ACCESSORS: {
 		builder => '_build_abstract'
 	);
 }
-
 after new => sub {
-	my ( $self ) = @_;
+	my ($self) = @_;
 	$self->_verify_methods( [qw/dbh /] );
 };
 
 sub select {
 
 	my $self = shift;
-	my ( $s, @p ) = $self->sqla->select( @_ );
+	my ( $s, @p ) = $self->sqla->select(@_);
 	return $self->_shared_query( $s, \@p );
 
 }
@@ -44,7 +41,7 @@ sub get {
 sub update {
 
 	my $self = shift;
-	my ( $s, @p ) = $self->sqla->update( @_ );
+	my ( $s, @p ) = $self->sqla->update(@_);
 	return $self->_shared_query( $s, \@p );
 
 }
@@ -52,7 +49,7 @@ sub update {
 sub insert {
 
 	my $self = shift;
-	my ( $s, @p ) = $self->sqla->insert( @_ );
+	my ( $s, @p ) = $self->sqla->insert(@_);
 	return $self->_shared_query( $s, \@p );
 
 }
@@ -60,7 +57,7 @@ sub insert {
 sub delete {
 
 	my $self = shift;
-	my ( $s, @p ) = $self->sqla->delete( @_ );
+	my ( $s, @p ) = $self->sqla->delete(@_);
 	return $self->_shared_query( $s, \@p );
 
 }
@@ -71,7 +68,7 @@ sub _shared_query {
 	$P ||= [];
 
 	# 	print "$Q with" . Data::Dumper::Dumper( \@{$P} );
-	my $sth = $self->dbh->prepare( $Q ) or die "failed to prepare statement :/";
+	my $sth = $self->dbh->prepare($Q) or die "failed to prepare statement :/";
 	try {
 		$sth->execute( @{$P} ) or die $!;
 	} catch {

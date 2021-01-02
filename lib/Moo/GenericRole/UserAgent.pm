@@ -15,7 +15,7 @@ ACCESSORS: {
 
 after new => sub {
 	my ( $self ) = @_;
-	$self->_verify_methods( [qw/json /] );
+# 	$self->_verify_methods( [qw/json /] );
 };
 
 #send json from a href and return the response object
@@ -31,6 +31,19 @@ sub post_json {
 	$req->content( $self->json->encode( $q ) );
 	my $result = $ua->request( $req );
 	return $result;
+
+}
+
+#send arbitrary data 
+sub post_misc {
+
+	my ( $self, $url, $data, $p ) = @_;
+	Carp::confess("Invalid \$data structure supplied - must be a href") unless ref($data) eq 'HASH';
+	$self->demand_params($p,[qw/Content-Type/]);
+	
+	my $ua = $self->get_lwp_user_agent();
+	$ua->timeout( $p->{defaulttimeout} || $self->defaulttimeout() );
+	return $ua->post( $url, $data ); 
 
 }
 
@@ -55,6 +68,8 @@ sub post_retrieve_json {
 	}
 
 }
+
+
 
 sub get_lwp_user_agent {
 
