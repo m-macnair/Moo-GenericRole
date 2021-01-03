@@ -1,7 +1,7 @@
 # ABSTRACT: Common file system tasks
 package Moo::GenericRole::FileSystem;
-our $VERSION = 'v1.0.17';
-##~ DIGEST : 3f20958a15972fbb808d2fb8e31c6e04
+our $VERSION = 'v1.0.18';
+##~ DIGEST : 0dd19e13987dc17d33bf9d6a7b9d2172
 
 use Moo::Role;
 with qw/Moo::GenericRole/;
@@ -153,8 +153,8 @@ sub safe_duplicate_path {
 
 		#tested
 		confess( "Target [$path] already exists" ) if $c->{fatal};
-		require File::Basename;
-		my ( $name, $dir, $suffix ) = File::Basename::fileparse( $path, qr/\.[^.]*/ );
+
+		my ( $name, $dir, $suffix ) = $self->file_parse( $path );
 
 		#tested
 		#feasibly this should come from UUID role, but this keeps it more self contained
@@ -171,6 +171,48 @@ sub safe_duplicate_path {
 	}
 	return $path;
 
+}
+
+=head3 file_parse
+	The only reason I've ever used File::Basename - split a path into the file name, it's path and it's .suffix
+=cut
+
+sub file_parse {
+	my ( $self, $path ) = @_;
+	require File::Basename;
+	my ( $name, $dir, $suffix ) = File::Basename::fileparse( $path, qr/\.[^.]*/ );
+	return ( $name, $dir, $suffix );
+}
+
+=head3 percent_file_name
+	Fat32 (and others) don't play well with utf8 file names, so un-fancify them
+=cut
+
+sub percent_file {
+
+	my ( $self, $path ) = @_;
+	my ( $name, $dir, $suffix ) = $self->file_parse( $path );
+	require URI::Escape;
+	$name = URI::Escape::uri_escape_utf8( $name );
+	return "$dir/$name$suffix";
+}
+
+sub snake_file {
+	my ( $self, $path ) = @_;
+	my ( $name, $dir, $suffix ) = $self->file_parse( $path );
+	$name =~ s| |_|g;
+	return "$dir/$name$suffix";
+
+}
+
+sub snake_percent_file {
+
+	my ( $self, $path ) = @_;
+	my ( $name, $dir, $suffix ) = $self->file_parse( $path );
+	$name =~ s| |_|g;
+	require URI::Escape;
+	$name = URI::Escape::uri_escape_utf8( $name );
+	return "$dir/$name$suffix";
 }
 
 =head3 build_time_path

@@ -1,7 +1,7 @@
 #ABSTRACT: Baseline for accessor based database interaction
 package Moo::GenericRole::DB;
-our $VERSION = 'v1.0.16';
-##~ DIGEST : 7b77ba52b95816e29a1224fad8bc27e4
+our $VERSION = 'v1.0.17';
+##~ DIGEST : e15d47997dfba6823848dd97a753658b
 use Moo::Role;
 with qw/Moo::GenericRole/;
 use Carp;
@@ -30,8 +30,8 @@ sub _set_dbh {
 
 	my $self = shift;
 	use DBI;
-	my $dbh = DBI->connect(@_) or die $DBI::errstr;
-	$self->dbh($dbh);
+	my $dbh = DBI->connect( @_ ) or die $DBI::errstr;
+	$self->dbh( $dbh );
 	return 1;
 
 }
@@ -45,8 +45,8 @@ sub sub_on_database_by_json_file {
 
 	my ( $self, $sub, $path, $extra ) = @_;
 	$extra ||= {};
-	my $def = $self->json_load_file($path);
-	$def = { %{$def}, %{$extra} };
+	my $def = $self->json_load_file( $path );
+	$def = {%{$def}, %{$extra}};
 	$self->sub_on_database( $sub, $def );
 
 }
@@ -64,9 +64,9 @@ sub dbh_from_def {
 		db   => 'database',
 		pass => 'password',
 	};
-	for my $key ( keys ( %{$replacements} ) ) {
+	for my $key ( keys( %{$replacements} ) ) {
 		if ( $def->{$key} ) {
-			$def->{ $replacements->{$key} } = $def->{$key};
+			$def->{$replacements->{$key}} = $def->{$key};
 		}
 	}
 	$def->{database} ||= '';
@@ -79,8 +79,8 @@ sub dbh_from_def {
 		]
 	);
 	my $dsn = "DBI:$def->{driver}:$def->{database};";
-	for (qw/ host port /) {
-		$dsn .= "$_=" . ( defined ( $def->{$_} ) ? "$def->{$_};" : ";" );
+	for ( qw/ host port / ) {
+		$dsn .= "$_=" . ( defined( $def->{$_} ) ? "$def->{$_};" : ";" );
 	}
 	my $dbh = DBI->connect( $dsn, $def->{user}, $def->{password} ) or die $DBI::errstr;
 	return $dbh;
@@ -91,7 +91,7 @@ sub set_dbh_from_def {
 
 	my ( $self, $def, $opt ) = @_;
 	my $dbh = $self->dbh_from_def( $def, $opt );
-	$self->dbh($dbh);
+	$self->dbh( $dbh );
 	return 1;
 
 }
@@ -99,32 +99,32 @@ sub set_dbh_from_def {
 # prepare, execute and return sth
 sub query {
 
-	my $self = shift ();
+	my $self = shift();
 
 	#HOURS wasted because I didn't know this was a thing
-	my $sth = $self->dbh->prepare_cached(shift);
-	$sth->execute(@_);
+	my $sth = $self->dbh->prepare_cached( shift );
+	$sth->execute( @_ );
 	return $sth;
 
 }
 
 sub commit_maybe {
 
-	my ($self) = @_;
+	my ( $self ) = @_;
 	my $counter = $self->_transaction_counter();
 	$counter++;
 	if ( $counter >= $self->_statement_limit() ) {
 		$self->dbh->commit() unless $self->dbh->{AutoCommit};
 		$counter = 0;
 	}
-	$self->_transaction_counter($counter);
+	$self->_transaction_counter( $counter );
 
 }
 
 sub commit_force {
 
-	my ($self) = @_;
-	$self->_transaction_counter(0);
+	my ( $self ) = @_;
+	$self->_transaction_counter( 0 );
 	$self->dbh->commit() unless $self->dbh->{AutoCommit};
 
 }
@@ -134,9 +134,9 @@ sub get_column_hash {
 
 	my ( $self, $sth, $col ) = @_;
 	my $return = [];
-	Carp::confess("Column not provided and cannot be inferred") unless $col;
+	Carp::confess( "Column not provided and cannot be inferred" ) unless $col;
 	while ( my $row = $sth->fetchrow_hashref() ) {
-		push ( @{$return}, $row->{$col} );
+		push( @{$return}, $row->{$col} );
 	}
 	return $return;
 
@@ -149,7 +149,7 @@ sub get_column_array {
 	my $return = [];
 	$col ||= 0;
 	while ( my $row = $sth->fetchrow_arrayref() ) {
-		push ( @{$return}, $row->[$col] );
+		push( @{$return}, $row->[$col] );
 	}
 	return $return;
 

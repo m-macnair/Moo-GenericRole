@@ -1,7 +1,7 @@
 #ABSTRACT: do file read/write with accessors
 package Moo::GenericRole::FileIO;
-our $VERSION = 'v2.0.9';
-##~ DIGEST : 8e3eb94cb974e3739e063364f834a79d
+our $VERSION = 'v2.0.10';
+##~ DIGEST : db751174f61947e1fb0136e8a55d9b0c
 # ABSTRACT: persistent file IO
 use Moo::Role;
 with qw/Moo::GenericRole/;
@@ -23,12 +23,12 @@ sub ofh {
 	#because this almost hit me - remove duplicate forward slashes which would map to the same file in the file system, but not this module
 	$path =~ s|/[/]+|/|g;
 	$c ||= {};
-	unless ( exists ( $self->file_handles->{$path} ) ) {
+	unless ( exists( $self->file_handles->{$path} ) ) {
 		if ( $c->{fh} ) {
 			$self->file_handles->{$path} = $c->{fh};
 		} else {
-			unless ( open ( $self->file_handles->{$path}, $c->{openparams} || ">:encoding(UTF-8)", $path ) ) {
-				confess("Failed to open write file [$path] : $!");
+			unless ( open( $self->file_handles->{$path}, $c->{openparams} || ">:encoding(UTF-8)", $path ) ) {
+				confess( "Failed to open write file [$path] : $!" );
 			}
 		}
 	}
@@ -40,10 +40,10 @@ sub ofh {
 sub hot_ofh {
 
 	my ( $self, $path ) = @_;
-	my $ofh = $self->ofh($path);
+	my $ofh = $self->ofh( $path );
 
 	#cargo culting like a boss
-	select ($ofh);
+	select( $ofh );
 	$|++;
 
 }
@@ -53,13 +53,13 @@ sub closefhs {
 	my ( $self, $paths ) = @_;
 
 	#close all unless specific
-	$paths ||= [keys ( %{ $self->file_handles } )];
+	$paths ||= [ keys( %{$self->file_handles} ) ];
 	use Data::Dumper;
 	for my $path ( @{$paths} ) {
 		$path =~ s|/[/]+|/|g;
-		close ( $self->file_handles->{$path} )
-		  or confess("Failed to close file handle for [$path] : $!");
-		undef ( $self->file_handles->{$path} );
+		close( $self->file_handles->{$path} )
+		  or confess( "Failed to close file handle for [$path] : $!" );
+		undef( $self->file_handles->{$path} );
 	}
 
 }
@@ -71,9 +71,9 @@ sub closefhs {
 sub slurp_file {
 
 	my ( $self, $path ) = @_;
-	$self->check_file($path);
+	$self->check_file( $path );
 	require File::Slurp;
-	return File::Slurp::slurp($path);
+	return File::Slurp::slurp( $path );
 
 }
 1;

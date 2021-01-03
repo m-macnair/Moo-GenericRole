@@ -1,7 +1,7 @@
 #ABSTRACT: send & recieve HTTP requests of various formats
 package Moo::GenericRole::UserAgent;
-our $VERSION = 'v1.0.12';
-##~ DIGEST : 2bf0d3bf95cf8e4d5f63954bb7163d4c
+our $VERSION = 'v1.0.13';
+##~ DIGEST : 12b50165d3497496051cd48951f3175d
 
 use Moo::Role;
 with qw/Moo::GenericRole/;
@@ -15,7 +15,8 @@ ACCESSORS: {
 
 after new => sub {
 	my ( $self ) = @_;
-# 	$self->_verify_methods( [qw/json /] );
+
+	# 	$self->_verify_methods( [qw/json /] );
 };
 
 #send json from a href and return the response object
@@ -34,16 +35,16 @@ sub post_json {
 
 }
 
-#send arbitrary data 
+#send arbitrary data
 sub post_misc {
 
 	my ( $self, $url, $data, $p ) = @_;
-	Carp::confess("Invalid \$data structure supplied - must be a href") unless ref($data) eq 'HASH';
-	$self->demand_params($p,[qw/Content-Type/]);
-	
+	Carp::confess( "Invalid \$data structure supplied - must be a href" ) unless ref( $data ) eq 'HASH';
+	$self->demand_params( $p, [qw/Content-Type/] );
+
 	my $ua = $self->get_lwp_user_agent();
 	$ua->timeout( $p->{defaulttimeout} || $self->defaulttimeout() );
-	return $ua->post( $url, $data ); 
+	return $ua->post( $url, $data );
 
 }
 
@@ -68,8 +69,6 @@ sub post_retrieve_json {
 	}
 
 }
-
-
 
 sub get_lwp_user_agent {
 
