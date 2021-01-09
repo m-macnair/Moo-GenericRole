@@ -1,7 +1,7 @@
 #ABSTRACT: do file read/write with accessors
 package Moo::GenericRole::FileIO;
-our $VERSION = 'v2.0.10';
-##~ DIGEST : db751174f61947e1fb0136e8a55d9b0c
+our $VERSION = 'v2.0.11';
+##~ DIGEST : 1ea21f5c2903cc7d10910cdda76d9adb
 # ABSTRACT: persistent file IO
 use Moo::Role;
 with qw/Moo::GenericRole/;
@@ -44,7 +44,8 @@ sub hot_ofh {
 
 	#cargo culting like a boss
 	select( $ofh );
-	$|++;
+	$| = 1;
+	return $ofh;
 
 }
 

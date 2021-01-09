@@ -1,7 +1,7 @@
 #ABSTRACT: overwrites/extensions to DB for maria/mysql
 package Moo::GenericRole::DB::MariaMysql;
-our $VERSION = 'v1.0.16';
-##~ DIGEST : 5389f0f142cce10242cc7523751cdc7b
+our $VERSION = 'v1.0.17';
+##~ DIGEST : a214d3d2bb82657b00c82ab2278fdad1
 use Moo::Role;
 use Carp;
 around "last_insert_id" => sub {
@@ -24,6 +24,11 @@ ACCESSORS: {
 		is      => 'rw',
 		lazy    => 1,
 		default => sub { return {} }
+	);
+	has mysql_table_exists_sth => (
+		is      => 'rw',
+		lazy    => 1,
+		default => sub { my ( $self ) = @_; return $self->dbh->prepare( "SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = ?" ); }
 	);
 }
 
@@ -185,5 +190,12 @@ sub _shared_mysql_string {
 	my $end_string   = "\t$db\t$table\t";
 	return ( $start_string, $mid_string, $end_string );
 
+}
+
+sub table_exists {
+	my ( $self, $table_name ) = @_;
+
+	$self->mysql_table_exists_sth->execute( $table_name );
+	return $self->mysql_table_exists_sth->fetchrow_arrayref();
 }
 1;

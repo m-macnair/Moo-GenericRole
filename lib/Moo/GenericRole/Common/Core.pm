@@ -2,8 +2,8 @@
 #ABSTRACT: things I rely on, but aren't universally necessary
 package Moo::GenericRole::Common::Core;
 use strict;
-our $VERSION = 'v1.1.1';
-##~ DIGEST : 80f49451f5225c98e3279774a7a574b7
+our $VERSION = 'v1.1.2';
+##~ DIGEST : f108a3189a41b42ee0555e45786d7dd6
 use Moo::Role;
 use 5.006;
 use Data::Dumper;
@@ -82,6 +82,19 @@ sub demand_params {
 		confess( "$msg - \$map :\n\t" . Dumper( $map ) );
 	}
 	return;
+
+}
+
+=head3 time_string
+	The way I like to display time - YYYY-MM-DDTHH:MM:SS
+=cut
+
+sub iso_time_string {
+
+	my @t = localtime( time );
+	$t[5] += 1900;
+	$t[4]++;
+	return sprintf '%04d-%02d-%02dT%02d:%02d:%02dZ', @t[ 5, 4, 3, 2, 1, 0 ];
 
 }
 

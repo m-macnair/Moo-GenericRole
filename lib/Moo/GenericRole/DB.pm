@@ -1,7 +1,7 @@
 #ABSTRACT: Baseline for accessor based database interaction
 package Moo::GenericRole::DB;
-our $VERSION = 'v1.0.17';
-##~ DIGEST : e15d47997dfba6823848dd97a753658b
+our $VERSION = 'v1.0.18';
+##~ DIGEST : 8e939e25f0bc2f06c2a0980d6b8e574a
 use Moo::Role;
 with qw/Moo::GenericRole/;
 use Carp;
@@ -14,6 +14,7 @@ ACCESSORS: {
 			return $self->_set_dbh();
 		}
 	);
+
 	has _transaction_counter => (
 		is      => 'rw',
 		lazy    => 1,
