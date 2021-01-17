@@ -1,7 +1,7 @@
 # ABSTRACT: Common file system tasks
 package Moo::GenericRole::FileSystem;
-our $VERSION = 'v1.0.19';
-##~ DIGEST : e2611700c56a236b636b5351ca7ae1c5
+our $VERSION = 'v1.1.1';
+##~ DIGEST : 3f6cb8ee52e4bd656a1f3bf6540d6fe5
 
 use Moo::Role;
 with qw/Moo::GenericRole/;
@@ -58,16 +58,17 @@ sub check_path {
 	#tested
 	my ( $self, $path, $value_name ) = @_;
 	$value_name = _value_name( $value_name );
-	confess( "check_path $value_name" . "value is null$/" )                unless $path;
-	confess( "check_path $value_name" . "path [$path] does not exist$/" )  unless -e $path;
-	confess( "check_path $value_name" . "path [$path] is not readable$/" ) unless -r $path;
+	confess( "check_path $value_name" . "value is null!$/\t" )                unless $path;
+	confess( "check_path $value_name" . "path [$path] does not exist!$/\t" )  unless -e $path;
+	confess( "check_path $value_name" . "path [$path] is not readable!$/\t" ) unless -r $path;
 }
 
 sub check_file {
 	my ( $self, $path, $value_name ) = @_;
-	$value_name = _value_name( $value_name );
+
 	$self->check_path( $path, $value_name );
-	confess( "checkfile $value_name" . "path [$path] is not a file$/" ) unless -f $path;
+	$value_name = _value_name( $value_name );
+	confess( "checkfile $value_name" . "path [$path] is not a file!$/\t" ) unless -f $path;
 
 }
 
@@ -75,17 +76,18 @@ sub check_dir {
 	my ( $self, $path, $value_name ) = @_;
 	$value_name = _value_name( $value_name );
 	$self->check_path( $path, $value_name );
-	confess( "check_dir $value_name" . "path [$path] is not a directory$/" ) unless -d $path;
+	confess( "check_dir $value_name" . "path [$path] is not a directory!$/\t" ) unless -d $path;
 
 }
 
 #reduce noise by ensuring the optional path value name (e.g. 'output file' ) is defined
 sub _value_name {
 	my ( $value_name ) = @_;
-	unless ( $value_name ) {
-		$value_name = '';
+	if ( $value_name ) {
+		return "[$value_name] ";
+	} else {
+		return '';
 	}
-	return $value_name;
 }
 
 #"do the only thing I ever use File::Spec for"
@@ -101,18 +103,18 @@ sub mvf {
 	my $self = shift;
 	my ( $source, $target ) = $self->_shared_fc( @_ );
 	require File::Copy;
-	File::Copy::mv( $source, $target ) or confess( "move failed: $!$/" );
+	File::Copy::mv( $source, $target ) or confess( "move failed: $!$/\t" );
 	return 1;
 
 }
 
-=head3 safemvf
+=head3 safe_mvf
 	Move a file or else - in that it'll try and do everything what needs doing otherwise
 =cut 
 
 sub safe_mvf {
 	my $self = shift;
-	my ( $source, $target ) = $self->_shared_fc( @_ );
+	my ( $source, $target, $opt ) = $self->_shared_fc( @_ );
 
 	#HCF if we're trying to move nothing
 	$self->check_file( $source );
@@ -134,7 +136,7 @@ sub safe_mvf {
 	}
 
 	#HFC if we're trying to overwrite
-	$self->safe_duplicate_path( $target, {fatal => 1} );
+	$self->safe_duplicate_path( $target, {fatal => 1, %{$opt}} );
 
 	require File::Copy;
 	File::Copy::mv( $source, $target_dir || $target )
@@ -152,7 +154,7 @@ sub safe_duplicate_path {
 	if ( -e $path ) {
 
 		#tested
-		confess( "Target [$path] already exists$/" ) if $c->{fatal};
+		confess( "Target [$path] already exists$/\t" ) if $c->{fatal};
 
 		my ( $name, $dir, $suffix ) = $self->file_parse( $path );
 
@@ -165,7 +167,7 @@ sub safe_duplicate_path {
 		# TODO sprintf?
 		my $newpath = "$dir/$name\_$uuid$suffix";
 
-		cluck( "Target [$path] already exists, renamed to $newpath$/" ) if $c->{verbose} || $self->verbose();
+		cluck( "Target [$path] already exists, renamed to $newpath$/\t" ) if $c->{verbose} || $self->verbose();
 
 		return $newpath;
 	}
@@ -244,10 +246,11 @@ sub _build_tmp_dir {
 }
 
 sub _shared_fc {
-	my ( $self, $source, $target ) = @_;
+	my ( $self, $source, $target, $opt ) = @_;
+	$opt ||= {};
 	$source = $self->abs_path( $source );
 	$target = $self->abs_path( $target );
-	return ( $source, $target );
+	return ( $source, $target, $opt );
 }
 
 sub make_path {
@@ -271,7 +274,7 @@ sub make_path {
 			for ( @{$errors} ) {
 				$errstr .= $_ . $/;
 			}
-			confess( "[$path] creation failed : [$/$errstr]$/" );
+			confess( "[$path] creation failed : [$/$errstr]$/\t" );
 		}
 	}
 
@@ -307,7 +310,7 @@ sub sub_on_directory_files {
 
 	#tested
 	my ( $self, $sub, $directory ) = @_;
-	confess( "First parameter to subonfiles was not a code reference$/" ) unless ref( $sub ) eq 'CODE';
+	confess( "First parameter to subonfiles was not a code reference$/\t" ) unless ref( $sub ) eq 'CODE';
 	$self->check_dir( $directory );
 	require File::Find;
 	File::Find::find(
@@ -348,6 +351,26 @@ sub abs_path {
 		$return = File::Spec->rel2abs( $path );
 	}
 	return $return; #return!
+
+}
+
+=head3 glob_paths
+	Return arref of paths matching command line style *.* matches
+	There's a case to be made that "./" should be auto-prepended in certain situations, but not today
+	'require' used here not just for TTek style paranoia, but because the glob method overwrites the default version
+=cut
+
+sub glob_paths {
+	my ( $self, $match_string ) = @_;
+
+	#in the case where * wasn't used and we only want one file
+	if ( -f $match_string ) {
+		return [$match_string];
+	}
+
+	#in the case where * or similar was used and we want everything
+	require File::DosGlob;
+	return [ File::DosGlob::glob( $match_string ) ];
 
 }
 
