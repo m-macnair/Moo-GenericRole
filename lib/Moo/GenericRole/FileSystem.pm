@@ -1,7 +1,7 @@
 # ABSTRACT: Common file system tasks
 package Moo::GenericRole::FileSystem;
-our $VERSION = 'v1.0.18';
-##~ DIGEST : 0dd19e13987dc17d33bf9d6a7b9d2172
+our $VERSION = 'v1.0.19';
+##~ DIGEST : e2611700c56a236b636b5351ca7ae1c5
 
 use Moo::Role;
 with qw/Moo::GenericRole/;
@@ -58,16 +58,16 @@ sub check_path {
 	#tested
 	my ( $self, $path, $value_name ) = @_;
 	$value_name = _value_name( $value_name );
-	confess( "check_path $value_name\value is null" )                 unless $path;
-	confess( "check_path $value_name\path [$path] does not exist" )   unless -e $path;
-	confess( "check_path $value_name\path [$path] is not readable " ) unless -r $path;
+	confess( "check_path $value_name" . "value is null$/" )                unless $path;
+	confess( "check_path $value_name" . "path [$path] does not exist$/" )  unless -e $path;
+	confess( "check_path $value_name" . "path [$path] is not readable$/" ) unless -r $path;
 }
 
 sub check_file {
 	my ( $self, $path, $value_name ) = @_;
 	$value_name = _value_name( $value_name );
 	$self->check_path( $path, $value_name );
-	confess( "checkfile $value_name\path [$path] is not a file " ) unless -f $path;
+	confess( "checkfile $value_name" . "path [$path] is not a file$/" ) unless -f $path;
 
 }
 
@@ -75,7 +75,7 @@ sub check_dir {
 	my ( $self, $path, $value_name ) = @_;
 	$value_name = _value_name( $value_name );
 	$self->check_path( $path, $value_name );
-	confess( "check_dir $value_name\path [$path] is not a directory " ) unless -d $path;
+	confess( "check_dir $value_name" . "path [$path] is not a directory$/" ) unless -d $path;
 
 }
 
@@ -101,7 +101,7 @@ sub mvf {
 	my $self = shift;
 	my ( $source, $target ) = $self->_shared_fc( @_ );
 	require File::Copy;
-	File::Copy::mv( $source, $target ) or confess( "move failed: $!" );
+	File::Copy::mv( $source, $target ) or confess( "move failed: $!$/" );
 	return 1;
 
 }
@@ -138,7 +138,7 @@ sub safe_mvf {
 
 	require File::Copy;
 	File::Copy::mv( $source, $target_dir || $target )
-	  or confess( "move failed: $!" );
+	  or confess( "move failed: $!$/" );
 	return 1;
 }
 
@@ -152,7 +152,7 @@ sub safe_duplicate_path {
 	if ( -e $path ) {
 
 		#tested
-		confess( "Target [$path] already exists" ) if $c->{fatal};
+		confess( "Target [$path] already exists$/" ) if $c->{fatal};
 
 		my ( $name, $dir, $suffix ) = $self->file_parse( $path );
 
@@ -165,7 +165,7 @@ sub safe_duplicate_path {
 		# TODO sprintf?
 		my $newpath = "$dir/$name\_$uuid$suffix";
 
-		cluck( "Target [$path] already exists, renamed to $newpath" ) if $c->{verbose} || $self->verbose();
+		cluck( "Target [$path] already exists, renamed to $newpath$/" ) if $c->{verbose} || $self->verbose();
 
 		return $newpath;
 	}
@@ -289,7 +289,7 @@ sub make_path {
 
 sub make_paths {
 	my ( $self, $paths ) = @_;
-	Carp::confess( "Not an arref of paths?" ) unless ref( $paths ) eq 'ARRAY';
+	confess( "Not an arref of paths?$/" ) unless ref( $paths ) eq 'ARRAY';
 	for my $path ( @{$paths} ) {
 		$self->make_path( $path );
 	}
@@ -307,7 +307,7 @@ sub sub_on_directory_files {
 
 	#tested
 	my ( $self, $sub, $directory ) = @_;
-	confess( "First parameter to subonfiles was not a code reference" ) unless ref( $sub ) eq 'CODE';
+	confess( "First parameter to subonfiles was not a code reference$/" ) unless ref( $sub ) eq 'CODE';
 	$self->check_dir( $directory );
 	require File::Find;
 	File::Find::find(
