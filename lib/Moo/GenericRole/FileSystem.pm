@@ -58,16 +58,16 @@ sub check_path {
 	#tested
 	my ( $self, $path, $value_name ) = @_;
 	$value_name = _value_name( $value_name );
-	confess( "check_path $value_name value is null" )                 unless $path;
-	confess( "check_path $value_name path [$path] does not exist" )   unless -e $path;
-	confess( "check_path $value_name path [$path] is not readable " ) unless -r $path;
+	confess( "check_path $value_name\value is null" )                 unless $path;
+	confess( "check_path $value_name\path [$path] does not exist" )   unless -e $path;
+	confess( "check_path $value_name\path [$path] is not readable " ) unless -r $path;
 }
 
 sub check_file {
 	my ( $self, $path, $value_name ) = @_;
 	$value_name = _value_name( $value_name );
 	$self->check_path( $path, $value_name );
-	confess( "checkfile $value_name path [$path] is not a file " ) unless -f $path;
+	confess( "checkfile $value_name\path [$path] is not a file " ) unless -f $path;
 
 }
 
@@ -75,7 +75,7 @@ sub check_dir {
 	my ( $self, $path, $value_name ) = @_;
 	$value_name = _value_name( $value_name );
 	$self->check_path( $path, $value_name );
-	confess( "check_dir $value_name path [$path] is not a directory " ) unless -d $path;
+	confess( "check_dir $value_name\path [$path] is not a directory " ) unless -d $path;
 
 }
 
