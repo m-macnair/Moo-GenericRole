@@ -1,7 +1,7 @@
 # ABSTRACT : perform and preserve command line interaction
 package Moo::GenericRole::CombinedCLI;
-our $VERSION = 'v1.2.7';
-##~ DIGEST : da0d80043ce4260a435e928f44cc4e8d
+our $VERSION = 'v1.3.0';
+##~ DIGEST : dd72c150149681a45bfee11d5e4e5103
 
 require Getopt::Long;
 require Config::Any::Merge;
@@ -307,6 +307,20 @@ sub format_usage_hrefs {
 		$string .= "-$key\t:\t$href->{$key}$/";
 	}
 	return $string;
+}
+
+=head3 splice_glob_argv
+	Different enough from FileSystem's glob_paths:
+		given number of arguments, extract that many arguments from the @ARGV variable, and return the rest as an array - with the assumption that it's caused by glob expansion
+		No clue how this would interact with get_config
+=cut
+
+sub splice_glob_argv {
+	my ( $self, $elements, $aref ) = @_;
+	$elements ||= 0;
+	$aref     ||= [@ARGV];
+	my @extract = splice( @{$aref}, 0, $elements );
+	return ( @extract, $aref );
 }
 
 1;
