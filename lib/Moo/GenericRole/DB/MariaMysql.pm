@@ -1,7 +1,7 @@
 #ABSTRACT: overwrites/extensions to DB for maria/mysql
 package Moo::GenericRole::DB::MariaMysql;
-our $VERSION = 'v1.0.17';
-##~ DIGEST : a214d3d2bb82657b00c82ab2278fdad1
+our $VERSION = 'v1.0.18';
+##~ DIGEST : a7b008e83fa51bc49feacd0d91e2d223
 use Moo::Role;
 use Carp;
 around "last_insert_id" => sub {
@@ -106,7 +106,8 @@ sub sub_on_show_table_index {
 
 sub check_table_for_columns {
 
-	my ( $self, $table, $columns ) = @_;
+	my ( $self, $table, $columns, $c ) = @_;
+	$c ||= {};
 	Carp::confess( "no table" )   unless $table;
 	Carp::confess( "no columns" ) unless @{$columns};
 	my $return = [];
@@ -116,13 +117,20 @@ sub check_table_for_columns {
 			for my $column_name ( @{$columns} ) {
 				if ( $row->{Field} eq $column_name ) {
 					push( @{$return}, $column_name );
-					last;
+					last if ( @{$return} == @{$columns} );
 				}
 			}
 			return 1;
 		},
 		$table
 	);
+	if ( $c->{force_exact} ) {
+		if ( @{$return} == @{$columns} ) {
+			return $return;
+		} else {
+			return [];
+		}
+	}
 	return $return; #return!
 
 }
@@ -134,7 +142,7 @@ sub check_db_for_columns {
 	$self->sub_on_db_tables(
 		sub {
 			my ( $table_name ) = @_;
-			$map->{$table_name} = $self->check_table_for_columns( $table_name, $columns );
+			$map->{$table_name} = $self->check_table_for_columns( $table_name, $columns, $c );
 		}
 	);
 	return $map;

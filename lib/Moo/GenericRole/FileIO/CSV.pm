@@ -2,8 +2,8 @@
 package Moo::GenericRole::FileIO::CSV;
 use strict;
 use warnings;
-our $VERSION = 'v1.0.6';
-##~ DIGEST : b2b4d31a47ee50c106a0e517a50cb751
+our $VERSION = 'v1.0.7';
+##~ DIGEST : 1993fc379df98d452433ea249b68216c
 use Moo::Role;
 ACCESSORS: {
 	has csv => (
@@ -58,6 +58,41 @@ sub sub_on_csv {
 		last unless &$sub( $colref );
 	}
 	close( $ifh ) or die "Failed to close [$path] : $!";
+
+}
+
+#as above, but assume the first row represents column names and process each row as a href
+sub sub_on_csv_href {
+
+	my ( $self, $sub, $path ) = @_;
+	my $heading_map = {};
+	my $first_row   = 1;
+	$self->sub_on_csv(
+		sub {
+			my ( $row ) = @_;
+			my $cell_counter = "0";
+			if ( $first_row ) {
+
+				#there's a better way to do this, but for now ~ s
+				for my $cell ( @{$row} ) {
+					$heading_map->{$cell_counter} = $cell;
+
+					$cell_counter++;
+				}
+				$first_row = 0;
+				return 1;
+			} else {
+				my $href = {};
+				for my $cell ( @{$row} ) {
+					$href->{$heading_map->{$cell_counter}} = $cell;
+					$cell_counter++;
+
+				}
+				return &$sub( $href );
+			}
+		},
+		$path
+	);
 
 }
 

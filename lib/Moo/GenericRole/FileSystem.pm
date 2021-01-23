@@ -1,7 +1,7 @@
 # ABSTRACT: Common file system tasks
 package Moo::GenericRole::FileSystem;
-our $VERSION = 'v1.1.1';
-##~ DIGEST : 3f6cb8ee52e4bd656a1f3bf6540d6fe5
+our $VERSION = 'v1.1.2';
+##~ DIGEST : de3002ded07b2006a6e4c8a5f18786c2
 
 use Moo::Role;
 with qw/Moo::GenericRole/;
@@ -57,6 +57,8 @@ sub check_path {
 
 	#tested
 	my ( $self, $path, $value_name ) = @_;
+
+	# 	$path = qq|"$path"|;
 	$value_name = _value_name( $value_name );
 	confess( "check_path $value_name" . "value is null!$/\t" )                unless $path;
 	confess( "check_path $value_name" . "path [$path] does not exist!$/\t" )  unless -e $path;
@@ -67,6 +69,8 @@ sub check_file {
 	my ( $self, $path, $value_name ) = @_;
 
 	$self->check_path( $path, $value_name );
+
+	# 	$path = qq|"$path"|;
 	$value_name = _value_name( $value_name );
 	confess( "checkfile $value_name" . "path [$path] is not a file!$/\t" ) unless -f $path;
 
@@ -74,8 +78,11 @@ sub check_file {
 
 sub check_dir {
 	my ( $self, $path, $value_name ) = @_;
+
 	$value_name = _value_name( $value_name );
 	$self->check_path( $path, $value_name );
+
+	# 	$path = qq|"$path"|;
 	confess( "check_dir $value_name" . "path [$path] is not a directory!$/\t" ) unless -d $path;
 
 }
@@ -119,7 +126,6 @@ sub safe_mvf {
 	#HCF if we're trying to move nothing
 	$self->check_file( $source );
 	my $target_dir;
-
 	require File::Basename;
 
 	#Handle moving a file to a directory without an explicit file name
@@ -142,6 +148,17 @@ sub safe_mvf {
 	File::Copy::mv( $source, $target_dir || $target )
 	  or confess( "move failed: $!$/" );
 	return 1;
+}
+
+=head3 safe_mvd
+	Move a directory or else - in that it'll try and do everything what needs doing otherwise
+=cut 
+
+sub safe_mvd {
+	my $self = shift;
+	my ( $source, $target, $opt ) = $self->_shared_fc( @_ );
+	die "not supported yet";
+
 }
 
 sub safe_duplicate_path {
@@ -240,7 +257,7 @@ sub _build_tmp_dir {
 	#tested
 	my ( $self, $root ) = @_;
 	$root ||= './';
-	$root = abs_path( $root );
+	$root = $self->abs_path( $root );
 	return $self->build_time_path( $root, 'Object Temporary Directory' );
 
 }

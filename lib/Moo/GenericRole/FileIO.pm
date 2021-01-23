@@ -1,7 +1,7 @@
 #ABSTRACT: do file read/write with accessors
 package Moo::GenericRole::FileIO;
-our $VERSION = 'v2.0.11';
-##~ DIGEST : 1ea21f5c2903cc7d10910cdda76d9adb
+our $VERSION = 'v2.0.12';
+##~ DIGEST : d2fff23cca7fe8cbf8cc376f2b11fcd5
 # ABSTRACT: persistent file IO
 use Moo::Role;
 with qw/Moo::GenericRole/;
@@ -52,9 +52,35 @@ sub hot_ofh {
 sub closefhs {
 
 	my ( $self, $paths ) = @_;
+	warn "Obsolete method name!";
+	$self->close_fhs( $paths );
 
+}
+
+=head3 sub_on_file_lines 
+	open a file with guard rails and do $something on each line 
+=cut
+
+sub sub_on_file_lines {
+	my ( $self, $sub, $path ) = @_;
+	open( my $fh, '<:raw', $path ) or die $!;
+	while ( <$fh> ) {
+		last unless &$sub( $_ );
+	}
+	close( $fh ) or die $!;
+	return 1;
+
+}
+
+sub close_fhs {
+	my ( $self, $paths ) = @_;
+
+	# TODO single if single
 	#close all unless specific
 	$paths ||= [ keys( %{$self->file_handles} ) ];
+
+	#no error if there's none open
+	return unless @{$paths};
 	use Data::Dumper;
 	for my $path ( @{$paths} ) {
 		$path =~ s|/[/]+|/|g;
