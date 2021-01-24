@@ -81,11 +81,11 @@ sub close_fhs {
 
 	#no error if there's none open
 	return unless @{$paths};
-	use Data::Dumper;
 	for my $path ( @{$paths} ) {
 		$path =~ s|/[/]+|/|g;
-		close( $self->file_handles->{$path} )
-		  or confess( "Failed to close file handle for [$path] : $!" );
+		if($self->file_handles->{$path}){
+			close( $self->file_handles->{$path} ) or confess( "Failed to close file handle for [$path] : $!" );
+		}
 		undef( $self->file_handles->{$path} );
 	}
 
