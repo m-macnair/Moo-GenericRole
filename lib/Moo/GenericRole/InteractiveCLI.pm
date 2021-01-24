@@ -3,8 +3,8 @@ use strict;
 # ABSTRACT : Present interactive command line menus that dispatch to other object methods
 package Moo::GenericRole::InteractiveCLI;
 
-our $VERSION = 'v1.0.2';
-##~ DIGEST : 75a5f444d2d86f61105546e6047634ed
+our $VERSION = 'v1.0.3';
+##~ DIGEST : 9ded5243456401eb7843a37f8079e65b
 
 use Moo::Role;
 use 5.006;
@@ -77,26 +77,32 @@ sub numerical_term_readline_menu {
 		my $quit_string = $p->{quit_string} || 'Quit';
 		push( @{$revised_order}, "0 : $quit_string" );
 	}
-	my $prompt_string = "$p->{prompt}:$/" . join( $/, @{$revised_order} ) . $/;
-
-	$prompt_string .= $p->{post_prompt} || '';
-	if ( $p->{'default'} ) {
-		$prompt_string .= "(Default $default_option_number)$/";
-	}
 
 	#display menu - this supports nested menus
 	while ( 1 ) {
+
+		#in the loop because it may change as a result of a menu choice
+		my $prompt_string = "$p->{prompt}:$/" . join( $/, @{$revised_order} ) . $/;
+
+		$prompt_string .= $p->{post_prompt} || '';
+		if ( $p->{'default'} ) {
+			$prompt_string .= "(Default $default_option_number)$/";
+		}
 
 		$self->set_named_term_readline( $p->{terminal_name} ) if $p->{terminal_name};
 		print $prompt_string;
 		my $reply = $self->term_readline->readline( '' );
 
 		if ( $mapping->{$reply} ) {
+
 			my $method_name = $mapping->{$reply};
 			last unless $self->$method_name( $p, $method_p );
+
 		} elsif ( $reply eq '0' && !$p->{no_quit_option} ) {
+
 			last;
 		} elsif ( $p->{'default'} ) {
+
 			my $method_name = $mapping->{$default_option_number};
 			last unless $self->$method_name( $p, $method_p );
 		}
@@ -154,7 +160,6 @@ sub _shared_menu_prep {
 	);
 
 	my ( $mapping, $order ) = ( {}, [] );
-	use Data::Dumper;
 
 	for my $pair ( @{$p->{choices}} ) {
 		my ( $key ) = keys( %{$pair} );

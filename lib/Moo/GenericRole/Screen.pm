@@ -2,8 +2,8 @@ use strict;
 
 # ABSTRACT: interact with gnu screen
 package Moo::GenericRole::Screen;
-our $VERSION = 'v1.0.7';
-##~ DIGEST : 4ddd1d90ce77029b6cf6c64e5d80687f
+our $VERSION = 'v1.0.8';
+##~ DIGEST : 83fc49e09c138a699262684a4e224e2d
 use Moo::Role;
 use 5.006;
 use warnings;
@@ -28,7 +28,6 @@ use warnings;
 ACCESSORS: {
 	has running_screen_map => (
 		is      => 'rw',
-		lazy    => 1,
 		default => sub { return {} }
 	);
 }
@@ -56,7 +55,12 @@ sub run_on_min_screens {
 
 		#work left and either at capacity or just added a screen
 		if ( index( $res, 'work' ) == 0 ) {
-			sleep( $c->{sleep_time} );
+			if ( index( $res, '_new_screen' ) != -1 ) {
+
+				#new screen but we still have work to allocate, so jump straight back into allocation
+			} else {
+				sleep( $c->{sleep_time} );
+			}
 
 			#screens still running, no work left
 		} elsif ( $res eq 'done_work_running_screen' ) {
@@ -66,6 +70,7 @@ sub run_on_min_screens {
 			#done
 			return 1;
 		}
+
 	}
 
 }
@@ -90,7 +95,7 @@ sub _run_on_min_screens_loop_iteration {
 	# 	warn $running_screen_count;
 
 	#determine if running at screen capacity and if not, load work
-	if ( $running_screen_count != $c->{min_screens} ) {
+	if ( $running_screen_count < $c->{min_screens} ) {
 		if ( $return eq 'work' ) {
 
 			#easy mistake to make - must provide a screen naming root
@@ -116,7 +121,11 @@ sub _run_on_min_screens_loop_iteration {
 
 		#There is work left, but screens at capacity
 		if ( $return eq 'work' ) {
-			$return .= '_full_screen';
+			if ( $running_screen_count > $c->{min_screens} ) {
+				$return .= '_over_capacity';
+			} else {
+				$return .= '_full_screen';
+			}
 		} else {
 
 			#we're done here
@@ -124,6 +133,12 @@ sub _run_on_min_screens_loop_iteration {
 		}
 	}
 	return $return;
+
+}
+
+# TODO - had enough for one day
+sub kill_running_screens {
+	my ( $self, $map ) = @_;
 
 }
 
@@ -137,6 +152,7 @@ sub check_running_screens {
 
 	my ( $self, $map ) = @_;
 	$map ||= $self->running_screen_map();
+
 	my $running_count = 0;
 	for my $screen_name ( sort ( keys( %{$map} ) ) ) {
 		if ( $self->check_for_screen_name( $screen_name ) ) {
@@ -145,6 +161,7 @@ sub check_running_screens {
 			delete( $map->{$screen_name} );
 		}
 	}
+
 	return ( $running_count );
 
 }

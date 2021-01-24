@@ -1,7 +1,7 @@
 #ABSTRACT: do file read/write with accessors
 package Moo::GenericRole::FileIO;
-our $VERSION = 'v2.0.12';
-##~ DIGEST : d2fff23cca7fe8cbf8cc376f2b11fcd5
+our $VERSION = 'v2.0.13';
+##~ DIGEST : 49de0add7bb91a043668f3f132bbd212
 # ABSTRACT: persistent file IO
 use Moo::Role;
 with qw/Moo::GenericRole/;
@@ -83,7 +83,7 @@ sub close_fhs {
 	return unless @{$paths};
 	for my $path ( @{$paths} ) {
 		$path =~ s|/[/]+|/|g;
-		if($self->file_handles->{$path}){
+		if ( $self->file_handles->{$path} ) {
 			close( $self->file_handles->{$path} ) or confess( "Failed to close file handle for [$path] : $!" );
 		}
 		undef( $self->file_handles->{$path} );
