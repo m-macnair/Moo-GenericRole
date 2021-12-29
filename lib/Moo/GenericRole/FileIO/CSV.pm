@@ -2,8 +2,8 @@
 package Moo::GenericRole::FileIO::CSV;
 use strict;
 use warnings;
-our $VERSION = 'v1.0.7';
-##~ DIGEST : 1993fc379df98d452433ea249b68216c
+our $VERSION = 'v2.0.0';
+##~ DIGEST : fa4d3278475b2af347087b1d0a0fda44
 use Moo::Role;
 ACCESSORS: {
 	has csv => (
@@ -40,13 +40,22 @@ ACCESSORS: {
 			[];
 		}
 	);
+
+	#lead_keys but for individual files
+	has file_lead_keys => (
+		is      => 'rw',
+		lazy    => 1,
+		default => sub {
+			{};
+		}
+	);
 }
 
 # do something on csv rows that aren't commented out until something returns falsey
 sub sub_on_csv {
 
 	my ( $self, $sub, $path ) = @_;
-	die "[$path] not found" unless ( -e $path );
+	die "[$path] not found"          unless ( -e $path );
 	die "sub isn't a code reference" unless ( ref( $sub ) eq 'CODE' );
 	open( my $ifh, "<:encoding(UTF-8)", $path )
 	  or die "Failed to open [$path] : $!";
@@ -117,17 +126,78 @@ sub get_csv_column {
 sub aref_to_csv {
 
 	my ( $self, $row, $path ) = @_;
-	$self->csv->print( $self->ofh( $path ), $row );
+	my $ofh = $self->ofh( $path );
+	$self->csv->print( $ofh, $row );
 
 }
 
 #given a href and a path, do the right thing
 sub href_to_csv {
 
-	my ( $self, $row, $path ) = @_;
+	my ( $self, $href, $path ) = @_;
 
-	my $column_order = $self->_path_column_header_orders->{$path} || $self->_init_path_columns( $row, $path );
-	$self->csv->print( $self->ofh( $path ), [ @{$row}{@{$column_order}} ] );
+	my $column_order = $self->_path_column_header_orders->{$path} || $self->_init_path_columns( $href, $path );
+	my $ofh          = $self->ofh( $path );
+	$self->csv->print( $ofh, [ @{$href}{@{$column_order}} ] );
+
+}
+
+=head3 href_sub_to_csv
+		To handle a specific and not uncommon problem - what do you do when the keys for 1-n hrefs are not the same?
+		Answer: write a temp file with column orders as they come, then write the column headings afterwards 
+		While sub returns hrefs, print columns in expected order to file, then push the column headings that have been discovered into row 0
+=cut
+
+sub href_sub_to_csv {
+
+	my ( $self, $sub, $path, $p ) = @_;
+	$p ||= {};
+	my $temp_path       = $path . '.tmp';
+	my $column_headings = [];
+	my $column_map      = {};
+	my $temp_ofh        = $self->ofh( $temp_path );
+	while ( my $href = &$sub( $column_headings, $column_map ) ) {
+
+		#First line
+		unless ( @{$column_headings} ) {
+			$column_headings = $self->_path_column_header_orders->{$path} || $self->_init_path_columns( $href, $path, {skip_print_headers => 1} );
+			for ( 0 .. $#$column_headings ) {
+				my $column_heading = $self->_process_href_sub_to_csv_key( $column_headings->[$_] );
+				$column_map->{$column_heading} = $_;
+			}
+		}
+
+		#check for unknown keys
+		for my $key ( keys( %{$href} ) ) {
+			my $test_key = $self->_process_href_sub_to_csv_key( $key );
+			unless ( exists( $column_map->{$test_key} ) ) {
+				push( @{$column_headings}, $test_key );
+				$column_map->{$test_key} = $#$column_headings;
+			}
+		}
+
+		#print to temp file with current known keys
+		$self->csv->print( $temp_ofh, [ @{$href}{@{$column_headings}} ] );
+	}
+	$self->close_fhs( [$temp_path] );
+	my $ofh = $self->ofh( $path );
+	$self->csv->print( $ofh, $column_headings );
+	my $ifh = $self->ifh( $temp_path );
+	while ( <$ifh> ) {
+		print $ofh $_;
+	}
+	$self->close_fhs( [ $temp_path, $path ] );
+	unlink( $temp_path );
+}
+
+sub _process_href_sub_to_csv_key {
+	my ( $self, $key, $p ) = @_;
+	if ( $p->{case_insensitive} ) {
+		$key = lc( $key );
+	}
+
+	#etc. etc.
+	return $key;
 
 }
 
@@ -135,6 +205,7 @@ sub href_to_csv {
 sub sth_href_to_csv {
 
 	my ( $self, $sth, $path ) = @_;
+
 	while ( my $row = $sth->fetchrow_hashref() ) {
 		$self->href_to_csv( $row, $path );
 	}
@@ -150,15 +221,25 @@ sub sth_aref_to_csv {
 
 }
 
+sub set_columns_for_path {
+	my ( $self, $columns, $path, $p ) = @_;
+	$p ||= {};
+	die "Columns not provided as array ref" unless ref( $columns ) eq 'ARRAY';
+
+}
+
 sub _init_path_columns {
 
-	my ( $self, $p, $path ) = @_;
-	if ( ref( $p ) eq 'HASH' ) {
-		$self->_path_column_header_orders->{$path} = $self->_get_column_order_for_href( $p );
-	} elsif ( ref( $p ) eq 'ARRAY' ) {
-		$self->_path_column_header_orders->{$path} = $p;
+	my ( $self, $v, $path, $p ) = @_;
+	$p ||= {};
+	if ( ref( $v ) eq 'HASH' ) {
+		$self->_path_column_header_orders->{$path} = $self->_get_column_order_for_href( $v );
+	} elsif ( ref( $v ) eq 'ARRAY' ) {
+		$self->_path_column_header_orders->{$path} = $v;
 	}
-	$self->aref_to_csv( $self->_path_column_header_orders->{$path}, $path ) if $self->print_headers();
+	unless ( $p->{skip_print_headers} ) {
+		$self->aref_to_csv( $self->_path_column_header_orders->{$path}, $path ) if $self->print_headers();
+	}
 	return $self->_path_column_header_orders->{$path};
 
 }
