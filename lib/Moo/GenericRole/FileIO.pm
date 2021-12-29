@@ -1,7 +1,7 @@
 #ABSTRACT: do file read/write with accessors
 package Moo::GenericRole::FileIO;
-our $VERSION = 'v2.0.14';
-##~ DIGEST : f4bf50ee401db57b7bad8a21751abd7b
+our $VERSION = 'v2.0.15';
+##~ DIGEST : c0889e7a3586261be65494cf8dd1bff7
 # ABSTRACT: persistent file IO
 use Moo::Role;
 with qw/Moo::GenericRole/;
@@ -44,18 +44,19 @@ sub ofh {
 =cut
 
 sub ifh {
-	my ( $self, $path, $c ) = @_;
+	my ( $self, $path, $p ) = @_;
 	$path =~ s|/[/]+|/|g;
-	$c ||= {};
+	$p ||= {};
 	unless ( exists( $self->file_handles->{$path} ) ) {
-		if ( $c->{fh} ) {
-			$self->file_handles->{$path} = $c->{fh};
+		if ( $p->{fh} ) {
+			$self->file_handles->{$path} = $p->{fh};
 		} else {
-			unless ( open( $self->file_handles->{$path}, $c->{openparams} || "<:raw", $path ) ) {
-				confess( "Failed to open write file [$path] : $!" );
+			unless ( open( $self->file_handles->{$path}, $p->{openparams} || "<:raw", $path ) ) {
+				confess( "Failed to open read file [$path] : $!" );
 			}
 		}
 	}
+
 	if ( wantarray() ) {
 		return ( $self->file_handles->{$path}, $path );
 	} else {
@@ -67,7 +68,7 @@ sub ifh {
 sub sub_on_input_file {
 
 	my ( $self, $sub, $path ) = @_;
-	die "[$path] not found" unless ( -e $path );
+	die "[$path] not found"          unless ( -e $path );
 	die "sub isn't a code reference" unless ( ref( $sub ) eq 'CODE' );
 	my $ifh;
 	( $ifh, $path ) = $self->ifh( $path );
@@ -129,7 +130,7 @@ sub close_fhs {
 		if ( $self->file_handles->{$path} ) {
 			close( $self->file_handles->{$path} ) or confess( "Failed to close file handle for [$path] : $!" );
 		}
-		undef( $self->file_handles->{$path} );
+		delete( $self->file_handles->{$path} );
 	}
 
 }
