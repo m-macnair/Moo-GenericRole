@@ -2,8 +2,8 @@
 package Moo::GenericRole::FileIO::CSV;
 use strict;
 use warnings;
-our $VERSION = 'v2.0.0';
-##~ DIGEST : fa4d3278475b2af347087b1d0a0fda44
+our $VERSION = 'v2.0.2';
+##~ DIGEST : a5963c92a5c48eba7ac2ed163857ef9b
 use Moo::Role;
 ACCESSORS: {
 	has csv => (
@@ -156,32 +156,41 @@ sub href_sub_to_csv {
 	my $column_headings = [];
 	my $column_map      = {};
 	my $temp_ofh        = $self->ofh( $temp_path );
-	while ( my $href = &$sub( $column_headings, $column_map ) ) {
-
-		#First line
-		unless ( @{$column_headings} ) {
-			$column_headings = $self->_path_column_header_orders->{$path} || $self->_init_path_columns( $href, $path, {skip_print_headers => 1} );
-			for ( 0 .. $#$column_headings ) {
-				my $column_heading = $self->_process_href_sub_to_csv_key( $column_headings->[$_] );
-				$column_map->{$column_heading} = $_;
-			}
+	while ( my $hrefs = &$sub( $column_headings, $column_map ) ) {
+		if ( ref( $hrefs ) eq 'HASH' ) {
+			$hrefs = [$hrefs];
 		}
+		for my $href ( @{$hrefs} ) {
 
-		#check for unknown keys
-		for my $key ( keys( %{$href} ) ) {
-			my $test_key = $self->_process_href_sub_to_csv_key( $key );
-			unless ( exists( $column_map->{$test_key} ) ) {
-				push( @{$column_headings}, $test_key );
-				$column_map->{$test_key} = $#$column_headings;
+			#First line
+			unless ( @{$column_headings} ) {
+				$column_headings = $self->_path_column_header_orders->{$path} || $self->_init_path_columns( $href, $path, {skip_print_headers => 1} );
+				for ( 0 .. $#$column_headings ) {
+					my $column_heading = $self->_process_href_sub_to_csv_key( $column_headings->[$_] );
+					$column_map->{$column_heading} = $_;
+				}
 			}
-		}
 
-		#print to temp file with current known keys
-		$self->csv->print( $temp_ofh, [ @{$href}{@{$column_headings}} ] );
+			#check for unknown keys
+			for my $key ( keys( %{$href} ) ) {
+				my $test_key = $self->_process_href_sub_to_csv_key( $key );
+				unless ( exists( $column_map->{$test_key} ) ) {
+					push( @{$column_headings}, $test_key );
+					$column_map->{$test_key} = $#$column_headings;
+				}
+			}
+
+			#print to temp file with current known keys
+			$self->csv->print( $temp_ofh, [ @{$href}{@{$column_headings}} ] );
+		}
 	}
 	$self->close_fhs( [$temp_path] );
+
+	#start again, with the exact known headings as line 0
 	my $ofh = $self->ofh( $path );
 	$self->csv->print( $ofh, $column_headings );
+
+	#re-read the file just written into the actual output file
 	my $ifh = $self->ifh( $temp_path );
 	while ( <$ifh> ) {
 		print $ofh $_;
