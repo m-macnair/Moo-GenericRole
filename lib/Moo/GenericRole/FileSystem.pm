@@ -1,13 +1,11 @@
 # ABSTRACT: Common file system tasks
 package Moo::GenericRole::FileSystem;
-our $VERSION = 'v1.1.2';
-##~ DIGEST : de3002ded07b2006a6e4c8a5f18786c2
+our $VERSION = 'v1.1.3';
+##~ DIGEST : 305209bdab38632beac6aa60d479f008
 
 use Moo::Role;
 with qw/Moo::GenericRole/;
 
-use POSIX;
-use Data::UUID;
 ACCESSORS: {
 
 	has tmp_dir => (
