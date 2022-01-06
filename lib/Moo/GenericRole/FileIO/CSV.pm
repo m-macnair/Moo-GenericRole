@@ -2,8 +2,8 @@
 package Moo::GenericRole::FileIO::CSV;
 use strict;
 use warnings;
-our $VERSION = 'v2.1.4';
-##~ DIGEST : ff3b7190d825d5de7101535d2168634f
+our $VERSION = 'v2.1.5';
+##~ DIGEST : ef8a67b3bcbd23e36375409541c9ba3d
 use Moo::Role;
 ACCESSORS: {
 	has csv => (
@@ -82,23 +82,22 @@ sub sub_on_csv_href {
 	$self->sub_on_csv(
 		sub {
 			my ( $row ) = @_;
-			my $cell_counter = "0";
+			my $cell_counter = 0;
 			if ( $first_row ) {
 
 				#there's a better way to do this, but for now ~ s
 				for my $cell ( @{$row} ) {
 					$heading_map->{$cell_counter} = $cell;
-
 					$cell_counter++;
 				}
 				$first_row = 0;
 				return 1;
 			} else {
-				my $href = {};
-				for my $cell ( @{$row} ) {
-					$href->{$heading_map->{$cell_counter}} = $cell;
-					$cell_counter++;
 
+				#originally this was the other way around leading to variable size hrefs which is exactly not what was wanted
+				my $href = {};
+				for my $row_position ( keys( %{$heading_map} ) ) {
+					$href->{$heading_map->{$row_position}} = $row->[$row_position];
 				}
 				return &$sub( $href );
 			}
@@ -241,10 +240,13 @@ sub _init_path_columns {
 	$p ||= {};
 	if ( ref( $v ) eq 'HASH' ) {
 		my ( $want, $surplus );
+		my @keys = keys( %{$v} );
 		if ( $self->file_lead_keys()->{$path} ) {
-			( $want, $surplus ) = $self->_split_key_sets( $v, $self->file_lead_keys()->{$path} );
+			( $want, $surplus ) = $self->_split_key_sets( \@keys, $self->file_lead_keys()->{$path} );
 		} else {
-			( $want, $surplus ) = $self->_split_key_sets( $v, $self->lead_keys() );
+
+			( $want, $surplus ) = $self->_split_key_sets( \@keys, $self->lead_keys() );
+
 		}
 		$self->_path_column_header_orders->{$path} = [ @{$want}, @{$surplus} ];
 	} elsif ( ref( $v ) eq 'ARRAY' ) {
@@ -262,7 +264,7 @@ sub _init_path_columns {
 =cut 
 
 sub _split_key_sets {
-	my ( $self, $want_keys, $have_keys ) = @_;
+	my ( $self, $have_keys, $want_keys ) = @_;
 
 	my $map = {};
 	for ( @{$have_keys} ) {

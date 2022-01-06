@@ -1,7 +1,7 @@
 # ABSTRACT: Common file system tasks
 package Moo::GenericRole::FileSystem;
-our $VERSION = 'v1.2.4';
-##~ DIGEST : 5234dd2ed9a65753f55e856343e7dbde
+our $VERSION = 'v1.2.5';
+##~ DIGEST : 98ce66a0466f090aa99267deb7465c84
 
 use Moo::Role;
 with qw/Moo::GenericRole/;
@@ -14,7 +14,7 @@ ACCESSORS: {
 		default => sub {
 			my ( $self ) = @_;
 
-			$self->build_tmp_dir();
+			$self->clean_path( $self->build_tmp_dir() );
 		}
 	);
 
@@ -28,13 +28,25 @@ ACCESSORS: {
 
 }
 
-#get a unique temporary directory path
+=head3 init_tmp_dir
+	In most cases, we want ./<something descriptive>/<something unique> which messing with temp_root doesn't provide
+	so use the argument here as the root and do everything else as normal
+=cut
+
+sub init_tmp_dir {
+	my ( $self, $root ) = @_;
+	$root = $self->abs_path( $root );
+	$self->make_path( $self->tmp_root( $root ) );
+	return $self->tmp_dir();
+}
+
+#get a unique temporary directory path string
 sub build_tmp_dir_path {
 
 	#tested
 	my ( $self, $root ) = @_;
 	$root ||= $self->tmp_root();
-	return $self->build_time_path( $root );
+	return $self->clean_path( $self->build_time_path( $root ) );
 
 }
 
@@ -44,6 +56,7 @@ sub build_tmp_dir {
 	#tested
 
 	my ( $self, $root ) = @_;
+	$root ||= $self->tmp_root();
 	my $path = $self->build_tmp_dir_path( $root );
 
 	$self->make_path( $path );
@@ -140,7 +153,7 @@ sub safe_mvf {
 	}
 
 	#HFC if we're trying to overwrite
-	$self->safe_duplicate_path( $target, {fatal => 1, %{$opt}} );
+	$self->get_safe_path( $target, {fatal => 1, %{$opt}} );
 
 	require File::Copy;
 	File::Copy::mv( $source, $target_dir || $target )
@@ -164,7 +177,8 @@ sub safe_mvd {
 =cut 
 
 sub safe_duplicate_path {
-	warn "Obsolete method name";
+	require Carp;
+	Carp::cluck( "Obsolete method name" );
 	my $self = shift;
 	$self->get_safe_path( @_ );
 
@@ -203,6 +217,15 @@ sub get_safe_path {
 	}
 	return $path;
 
+}
+
+sub clean_path {
+	my ( $self, $path ) = @_;
+	if ( -e $path && -d $path ) {
+		$path = "$path/";
+	}
+	$path =~ s|//+|/|g;
+	return $path;
 }
 
 =head3 file_parse
