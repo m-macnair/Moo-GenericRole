@@ -2,8 +2,8 @@
 package Moo::GenericRole::FileIO::CSV;
 use strict;
 use warnings;
-our $VERSION = 'v2.0.2';
-##~ DIGEST : a5963c92a5c48eba7ac2ed163857ef9b
+our $VERSION = 'v2.1.4';
+##~ DIGEST : ff3b7190d825d5de7101535d2168634f
 use Moo::Role;
 ACCESSORS: {
 	has csv => (
@@ -32,7 +32,7 @@ ACCESSORS: {
 		}
 	);
 
-	#keys in order that should go first in output csv files
+	#explicit "put these keys first" arref for all cases
 	has lead_keys => (
 		is      => 'rw',
 		lazy    => 1,
@@ -41,7 +41,7 @@ ACCESSORS: {
 		}
 	);
 
-	#lead_keys but for individual files
+	#lead_keys but for individual files - 'should' instead of _path_column_header_orders 'is'
 	has file_lead_keys => (
 		is      => 'rw',
 		lazy    => 1,
@@ -70,7 +70,10 @@ sub sub_on_csv {
 
 }
 
-#as above, but assume the first row represents column names and process each row as a href
+=head3 sub_on_csv_href
+	As above, but provide each row as a href assuming the first line in the file is the key headings
+=cut 
+
 sub sub_on_csv_href {
 
 	my ( $self, $sub, $path ) = @_;
@@ -105,6 +108,7 @@ sub sub_on_csv_href {
 
 }
 
+#given a csv path and a column number, return all rows for that column
 sub get_csv_column {
 	my ( $self, $path, $column ) = @_;
 	$self->check_file( $path );
@@ -146,6 +150,7 @@ sub href_to_csv {
 		To handle a specific and not uncommon problem - what do you do when the keys for 1-n hrefs are not the same?
 		Answer: write a temp file with column orders as they come, then write the column headings afterwards 
 		While sub returns hrefs, print columns in expected order to file, then push the column headings that have been discovered into row 0
+		Significantly, this ignores lead_keys
 =cut
 
 sub href_sub_to_csv {
@@ -230,19 +235,18 @@ sub sth_aref_to_csv {
 
 }
 
-sub set_columns_for_path {
-	my ( $self, $columns, $path, $p ) = @_;
-	$p ||= {};
-	die "Columns not provided as array ref" unless ref( $columns ) eq 'ARRAY';
-
-}
-
 sub _init_path_columns {
 
 	my ( $self, $v, $path, $p ) = @_;
 	$p ||= {};
 	if ( ref( $v ) eq 'HASH' ) {
-		$self->_path_column_header_orders->{$path} = $self->_get_column_order_for_href( $v );
+		my ( $want, $surplus );
+		if ( $self->file_lead_keys()->{$path} ) {
+			( $want, $surplus ) = $self->_split_key_sets( $v, $self->file_lead_keys()->{$path} );
+		} else {
+			( $want, $surplus ) = $self->_split_key_sets( $v, $self->lead_keys() );
+		}
+		$self->_path_column_header_orders->{$path} = [ @{$want}, @{$surplus} ];
 	} elsif ( ref( $v ) eq 'ARRAY' ) {
 		$self->_path_column_header_orders->{$path} = $v;
 	}
@@ -253,28 +257,52 @@ sub _init_path_columns {
 
 }
 
-#when a href order is not know, generate it using the leadkeys as the first ones (e.g. always put the id column in position 0)
-sub _get_column_order_for_href {
+=head3 _split_key_sets
+"Given want_keys and have_keys, return arref in submitted order of wanted keys found, and sorted arref of the rest"
+=cut 
 
-	my ( $self, $href ) = @_;
-	my @keys = keys( %{$href} );
-	my @junkeys;
-	my $return = [];
+sub _split_key_sets {
+	my ( $self, $want_keys, $have_keys ) = @_;
 
-	#I am not happy about how this is written, but it's abstracted enough to be less awful one day
-	while ( my $key = shift( @keys ) ) {
-		THISKEY: {
-			for my $lead_key ( @{$self->lead_keys} ) {
-				if ( $lead_key eq $key ) {
-					push( @{$return}, $key );
-					next THISKEY;
-				}
-			}
-			push( @junkeys, $key );
+	my $map = {};
+	for ( @{$have_keys} ) {
+		$map->{$_} = 1;
+	}
+
+	my ( $wanted, $surplus ) = ( [], [] );
+
+	for my $wanted_key ( $want_keys ) {
+		if ( exists( $map->{$wanted_key} ) ) {
+			push( @{$wanted}, $wanted_key );
+			delete( $map->{$wanted_key} );
 		}
 	}
-	push( @{$return}, sort ( @junkeys ) );
-	return $return;
+	$surplus = [ sort( keys( %{$map} ) ) ];
+	return ( $wanted, $surplus );
+}
+
+#Overkill but consistent
+sub set_column_order_for_path {
+	my ( $self, $column_order, $path ) = @_;
+	$self->file_lead_keys()->{$path} = $column_order;
+	return;
+}
+
+=head3 reorder_csv
+	Given a CSV, reprocess with lead_keys and file_lead_keys as the column order, and any other columns in sorted order
+=cut
+
+sub reorder_csv {
+	my ( $self, $in_path, $out_path ) = @_;
+	die "input file [$in_path] not found" unless -e $in_path;
+	$out_path = $self->get_safe_path( $out_path );
+	$self->sub_on_csv_href(
+		sub {
+			my ( $row ) = @_;
+			$self->href_to_csv( $row, $out_path );
+		},
+		$in_path
+	);
 
 }
 

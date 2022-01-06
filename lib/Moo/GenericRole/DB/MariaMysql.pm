@@ -1,7 +1,7 @@
 #ABSTRACT: overwrites/extensions to DB for maria/mysql
 package Moo::GenericRole::DB::MariaMysql;
-our $VERSION = 'v1.0.18';
-##~ DIGEST : a7b008e83fa51bc49feacd0d91e2d223
+our $VERSION = 'v1.0.19';
+##~ DIGEST : 433f43b23a8200292c751ab8da431c4f
 use Moo::Role;
 use Carp;
 around "last_insert_id" => sub {
@@ -81,7 +81,7 @@ sub sub_on_describe_table {
 	my ( $self, $sub, $table, $c ) = @_;
 	$c ||= {};
 	Carp::confess( "Invalid sub provided" ) unless ref( $sub ) eq 'CODE';
-	Carp::confess( "no table" ) unless $table;
+	Carp::confess( "no table" )             unless $table;
 	my ( $sth ) = $self->query( "describe `$table`" );
 	while ( my $row = $sth->fetchrow_hashref() ) {
 		last unless &$sub( $row, $c );
@@ -95,7 +95,7 @@ sub sub_on_show_table_index {
 	my ( $self, $sub, $table, $c ) = @_;
 	$c ||= {};
 	Carp::confess( "Invalid sub provided" ) unless ref( $sub ) eq 'CODE';
-	Carp::confess( "no table" ) unless $table;
+	Carp::confess( "no table" )             unless $table;
 	my ( $sth ) = $self->query( "show index from `$table`" );
 	while ( my $row = $sth->fetchrow_hashref() ) {
 		last unless &$sub( $row, $c );
@@ -193,8 +193,8 @@ sub _shared_mysql_string {
 	}
 	my $start_string = " -u $args->{user}\t$pass_string\t$host_string\t$port_string ";
 	my $mid_string   = join( "\t", @{$stack} ) || '';
-	my $table        = $args->{table} || '';
-	my $db           = $args->{db} || $args->{database};
+	my $table        = $args->{table}          || '';
+	my $db           = $args->{db}             || $args->{database};
 	my $end_string   = "\t$db\t$table\t";
 	return ( $start_string, $mid_string, $end_string );
 

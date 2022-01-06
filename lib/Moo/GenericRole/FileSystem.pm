@@ -1,7 +1,7 @@
 # ABSTRACT: Common file system tasks
 package Moo::GenericRole::FileSystem;
-our $VERSION = 'v1.1.3';
-##~ DIGEST : 305209bdab38632beac6aa60d479f008
+our $VERSION = 'v1.2.4';
+##~ DIGEST : 5234dd2ed9a65753f55e856343e7dbde
 
 use Moo::Role;
 with qw/Moo::GenericRole/;
@@ -159,17 +159,32 @@ sub safe_mvd {
 
 }
 
+=head3 safe_duplicate_path
+	get_duplicate_safe_path because safe_duplicate_path could be ambiguously interpretted when i'm half asleep
+=cut 
+
 sub safe_duplicate_path {
+	warn "Obsolete method name";
+	my $self = shift;
+	$self->get_safe_path( @_ );
+
+}
+
+=head3 get_safe_path
+	Given a path, return the path or a path that can be confidently used instead, e.g. won't create a duplicate and is Windows proof
+=cut
+
+sub get_safe_path {
 
 	#tested
 	my $self = shift;
-	my ( $path, $c ) = @_;
+	my ( $path, $p ) = @_;
 
-	$c ||= {};
+	$p ||= {};
 	if ( -e $path ) {
 
 		#tested
-		confess( "Target [$path] already exists$/\t" ) if $c->{fatal};
+		confess( "Target [$path] already exists$/\t" ) if $p->{fatal};
 
 		my ( $name, $dir, $suffix ) = $self->file_parse( $path );
 
@@ -182,9 +197,9 @@ sub safe_duplicate_path {
 		# TODO sprintf?
 		my $newpath = "$dir/$name\_$uuid$suffix";
 
-		cluck( "Target [$path] already exists, renamed to $newpath$/\t" ) if $c->{verbose} || $self->verbose();
+		cluck( "Target [$path] already exists, renamed to $newpath$/\t" ) if $p->{verbose} || $self->can( 'verbose' ) && $self->verbose();
 
-		return $newpath;
+		$path = $newpath;
 	}
 	return $path;
 
