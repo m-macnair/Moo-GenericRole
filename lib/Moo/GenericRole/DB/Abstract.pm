@@ -1,7 +1,7 @@
 #ABSTRACT: use $self->dbi and sql abstract
 package Moo::GenericRole::DB::Abstract;
-our $VERSION = 'v1.0.14';
-##~ DIGEST : 2686f62f92af5c0f91e0a479a845c420
+our $VERSION = 'v2.0.0';
+##~ DIGEST : 9cf7cc5f8696951b103aca5c9ad17ed6
 use Try::Tiny;
 use Moo::Role;
 with qw/Moo::GenericRole/;
@@ -12,10 +12,6 @@ ACCESSORS: {
 		builder => '_build_abstract'
 	);
 }
-after new => sub {
-	my ( $self ) = @_;
-	$self->_verify_methods( [qw/dbh /] );
-};
 
 sub select {
 
