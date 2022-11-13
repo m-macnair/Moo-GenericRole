@@ -10,7 +10,10 @@ require Config::Any::Merge;
 use Hash::Merge;
 use Carp;
 use Moo::Role;
-with qw/Moo::GenericRole/;
+with qw/
+	Moo::GenericRole
+	Moo::GenericRole::ConfigAny
+/;
 
 after new => sub {
 	my ( $self ) = @_;
@@ -185,60 +188,8 @@ sub check_config {
 
 }
 
-sub config_file_dir {
 
-	my ( $self, $c ) = @_;
 
-	# if this fires, nothing is produced but no errors either
-	$c ||= {};
-	my $return      = {};
-	my $dir_config  = $self->config_dir( $c->{config_dir} );
-	my $file_config = $self->config_file( $c->{config_file} || $c->{cfg} );
-	$return = Hash::Merge::merge( $dir_config, $file_config );
-
-	return $return; # return!
-}
-
-sub config_dir {
-	my ( $self, $path ) = @_;
-	my $return = {};
-	if ( $path ) {
-		$self->check_dir( $path );
-		my @cfiles;
-		$self->sub_on_directory_files(
-			sub {
-				my ( $file ) = @_;
-				push( @cfiles, $file );
-			},
-			$path
-		);
-
-		$return = Config::Any::Merge->load_files(
-			{
-				files   => \@cfiles,
-				use_ext => 1
-			}
-		) or die "failed to load configuration file : $!";
-	}
-	return $return; # return!
-}
-
-sub config_file {
-
-	my ( $self, $path ) = @_;
-	my $return = {};
-	if ( $path ) {
-		$self->check_file( $path );
-
-		$return = Config::Any::Merge->load_files(
-			{
-				files   => [$path],
-				use_ext => 1
-			}
-		) or die "failed to load configuration file : $!";
-	}
-	return $return; # return!
-}
 
 =head3 explode_array
 	Turn arrays which may contain other arrays into a single stack of values
