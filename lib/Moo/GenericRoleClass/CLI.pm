@@ -6,6 +6,7 @@ use Moo;
 with qw/
   Moo::GenericRole::Common
   Moo::GenericRole::CombinedCLI
+  Moo::GenericRole::Config::Any
   Moo::GenericRole::FileSystem
   /;
 
