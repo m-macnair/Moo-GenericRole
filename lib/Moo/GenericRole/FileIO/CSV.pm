@@ -2,9 +2,10 @@
 package Moo::GenericRole::FileIO::CSV;
 use strict;
 use warnings;
-our $VERSION = 'v2.0.2';
-##~ DIGEST : a5963c92a5c48eba7ac2ed163857ef9b
+our $VERSION = 'v2.0.3';
+##~ DIGEST : 259c2381d457b86814da1198d6c131e5
 use Moo::Role;
+use Carp;
 ACCESSORS: {
 	has csv => (
 		is      => 'rw',
@@ -55,8 +56,9 @@ ACCESSORS: {
 sub sub_on_csv {
 
 	my ( $self, $sub, $path ) = @_;
-	die "[$path] not found"          unless ( -e $path );
-	die "sub isn't a code reference" unless ( ref( $sub ) eq 'CODE' );
+	Carp::confess( 'Path not defined' ) unless ( defined( $path ) );
+	die "[$path] not found"             unless ( -e $path );
+	die "sub isn't a code reference"    unless ( ref( $sub ) eq 'CODE' );
 	open( my $ifh, "<:encoding(UTF-8)", $path )
 	  or die "Failed to open [$path] : $!";
 	my $csv = $self->csv();
@@ -64,7 +66,7 @@ sub sub_on_csv {
 		if ( index( $colref->[0], '#' ) == 0 ) {
 			next;
 		}
-		last unless &$sub( $colref );
+		last unless &$sub( $colref, $. );
 	}
 	close( $ifh ) or die "Failed to close [$path] : $!";
 

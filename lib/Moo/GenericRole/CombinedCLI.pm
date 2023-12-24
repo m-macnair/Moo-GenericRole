@@ -1,7 +1,7 @@
 # ABSTRACT : perform and preserve command line interaction
 package Moo::GenericRole::CombinedCLI;
-our $VERSION = 'v1.3.0';
-##~ DIGEST : dd72c150149681a45bfee11d5e4e5103
+our $VERSION = 'v1.3.1';
+##~ DIGEST : bfa9f0b1e3e82c141e3ddf809710560f
 
 require Getopt::Long;
 require Config::Any::Merge;
@@ -11,9 +11,9 @@ use Hash::Merge;
 use Carp;
 use Moo::Role;
 with qw/
-	Moo::GenericRole
-	Moo::GenericRole::ConfigAny
-/;
+  Moo::GenericRole
+  Moo::GenericRole::ConfigAny
+  /;
 
 after new => sub {
 	my ( $self ) = @_;
@@ -27,6 +27,7 @@ sub get_config {
 
 	# in Common::Core now
 	$self->cfg( $cfg );
+	return $cfg;
 
 }
 
@@ -187,9 +188,6 @@ sub check_config {
 	return 1;
 
 }
-
-
-
 
 =head3 explode_array
 	Turn arrays which may contain other arrays into a single stack of values

@@ -1,7 +1,7 @@
 # ABSTRACT: Common file system tasks
 package Moo::GenericRole::FileSystem;
-our $VERSION = 'v1.1.3';
-##~ DIGEST : 305209bdab38632beac6aa60d479f008
+our $VERSION = 'v1.1.4';
+##~ DIGEST : e11af20ebcb4d682ff29ad3c20c1f0cf
 
 use Moo::Role;
 with qw/Moo::GenericRole/;
@@ -140,12 +140,44 @@ sub safe_mvf {
 	}
 
 	#HFC if we're trying to overwrite
-	$self->safe_duplicate_path( $target, {fatal => 1, %{$opt}} );
+	my $new_path = $self->safe_duplicate_path( $target, {fatal => 1, %{$opt}} );
 
 	require File::Copy;
 	File::Copy::mv( $source, $target_dir || $target )
 	  or confess( "move failed: $!$/" );
-	return 1;
+	return $new_path;
+}
+
+# as above, but copy
+sub safe_cpf {
+	my $self = shift;
+	my ( $source, $target, $opt ) = $self->_shared_fc( @_ );
+
+	#HCF if we're trying to move nothing
+	$self->check_file( $source );
+	my $target_dir;
+	require File::Basename;
+
+	#Handle moving a file to a directory without an explicit file name
+	if ( -d $target ) {
+		my ( $name, $dir ) = File::Basename::fileparse( $source );
+		$target = "$target/$name";
+	} else {
+
+		my ( $name, $target_dir ) = File::Basename::fileparse( $target );
+
+		#does nothing if target directory exists already
+		$self->make_path( $target_dir );
+		$target = "$target_dir/$name";
+	}
+
+	#HFC if we're trying to overwrite
+	my $result = $self->safe_duplicate_path( $target, {fatal => 1, %{$opt}} );
+
+	require File::Copy;
+	File::Copy::cp( $source, $target_dir || $target )
+	  or confess( "move failed: $!$/" );
+	return $result;
 }
 
 =head3 safe_mvd
@@ -285,9 +317,10 @@ sub make_path {
 		my $errors;
 		File::Path::make_path( $path, {error => \$errors} );
 		if ( $errors && @{$errors} ) {
+			require Data::Dumper;
 			my $errstr;
 			for ( @{$errors} ) {
-				$errstr .= $_ . $/;
+				$errstr .= Data::Dumper::Dumper( $_ ) . $/;
 			}
 			confess( "[$path] creation failed : [$/$errstr]$/\t" );
 		}
@@ -315,17 +348,19 @@ sub make_paths {
 
 }
 
-=head3 sub_on_directory_files
+=head3 sub_on_find_files
 
-	Given a sub and a directory, pass the sub each file in the directory until the sub returns falsey, then jump out of the search
+	Given a sub and a directory, pass the sub each file in the directory and subdirectories until the sub returns falsey, then jump out of the search
 
 =cut
 
-sub sub_on_directory_files {
+sub sub_on_find_files {
 
 	#tested
-	my ( $self, $sub, $directory ) = @_;
-	confess( "First parameter to subonfiles was not a code reference$/\t" ) unless ref( $sub ) eq 'CODE';
+	my ( $self, $sub, $directory, $find_opts ) = @_;
+	$find_opts ||= {};
+	confess( "First parameter to sub_on_find_files was not a code reference$/\t" )                                                     unless ref( $sub ) eq 'CODE';
+	confess( "Second parameter [" . ( defined( $directory ) ? $directory : '' ) . "] to sub_on_find_files was not a valid directory" ) unless $directory && -d $directory;
 	$self->check_dir( $directory );
 	require File::Find;
 	File::Find::find(
@@ -333,16 +368,39 @@ sub sub_on_directory_files {
 			wanted => sub {
 				return unless -f $File::Find::name;
 				my $full_path = $self->abs_path( $File::Find::name );
-				goto Moo_GenericRole_FileSystem_sub_on_directory_files_end unless ( &$sub( $full_path ) );
+				goto Moo_GenericRole_FileSystem_sub_on_find_files_end unless ( &$sub( $full_path ) );
 			},
 			no_chdir => 1,
+			%{$find_opts}
 		},
 		$directory
 	);
 
-	Moo_GenericRole_FileSystem_sub_on_directory_files_end:
+	Moo_GenericRole_FileSystem_sub_on_find_files_end:
 	return;
 
+}
+
+=head3 sub_on_directory_files2
+
+	Given a sub and a directory, 
+	pass the sub each file in the directory 
+	but NOT the subdirectories 
+	until the sub returns falsey, then jump out of the loop
+=cut
+
+sub sub_on_directory_files {
+	my ( $self, $sub, $directory ) = @_;
+	confess( "First parameter to sub_on_directory_files was not a code reference$/\t" )                                                     unless ref( $sub ) eq 'CODE';
+	confess( "Second parameter [" . ( defined( $directory ) ? $directory : '' ) . "] to sub_on_directory_files was not a valid directory" ) unless $directory && -d $directory;
+
+	for my $file ( glob qq<"$directory"/*> ) {
+		my $full_path = $self->abs_path( $file );
+
+		next unless -f $full_path;
+		last unless ( &$sub( $full_path ) );
+	}
+	return;
 }
 
 =head3 abs_path
@@ -355,7 +413,7 @@ sub abs_path {
 	my $self = shift;
 	my ( $path ) = @_;
 	my $return;
-	if ( -e $path ) {
+	if ( $path && -e $path ) {
 		require Cwd;
 		$return = Cwd::abs_path( $path );
 		if ( -d $return ) {

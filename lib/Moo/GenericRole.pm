@@ -1,6 +1,6 @@
 # ABSTRACT : Universal include for all elements in the name space
 package Moo::GenericRole;
-our $VERSION = 'v1.0.8';
+our $VERSION = 'v1.0.9';
 ##~ DIGEST : 72da56541baab29693fbc09f7399861e
 use Moo::Role;
 

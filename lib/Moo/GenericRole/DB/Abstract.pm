@@ -1,9 +1,10 @@
 #ABSTRACT: use $self->dbi and sql abstract
 package Moo::GenericRole::DB::Abstract;
-our $VERSION = 'v2.0.0';
-##~ DIGEST : 9cf7cc5f8696951b103aca5c9ad17ed6
+our $VERSION = 'v2.1.2';
+##~ DIGEST : fa9437a3e38ce77d34e54c22df4430f6
 use Try::Tiny;
 use Moo::Role;
+use Carp;
 with qw/Moo::GenericRole/;
 ACCESSORS: {
 	has sqla => (
@@ -22,12 +23,15 @@ sub select {
 }
 
 =head3 get
-	Convenience wrapper around select
+	Convenience wrapper around select - select($source, $fields, $where, $order)
 =cut
 
 sub get {
 
 	my $self = shift;
+	if ( ref( $_[0] ) ) {
+		Carp::confess( "First parameter to SQL::Abstract must be target/source table" );
+	}
 	my $from = shift;
 	my $sth  = $self->select( $from, ['*'], @_ );
 	my $row  = $sth->fetchrow_hashref();
@@ -37,6 +41,9 @@ sub get {
 sub update {
 
 	my $self = shift;
+	if ( ref( $_[0] ) ) {
+		Carp::confess( "First parameter to SQL::Abstract must be target/source table" );
+	}
 	my ( $s, @p ) = $self->sqla->update( @_ );
 	return $self->_shared_query( $s, \@p );
 
@@ -45,7 +52,11 @@ sub update {
 sub insert {
 
 	my $self = shift;
+	if ( ref( $_[0] ) ) {
+		Carp::confess( "First parameter to SQL::Abstract must be target/source table" );
+	}
 	my ( $s, @p ) = $self->sqla->insert( @_ );
+
 	return $self->_shared_query( $s, \@p );
 
 }
@@ -53,6 +64,9 @@ sub insert {
 sub delete {
 
 	my $self = shift;
+	if ( ref( $_[0] ) ) {
+		Carp::confess( "First parameter to SQL::Abstract must be target/source table" );
+	}
 	my ( $s, @p ) = $self->sqla->delete( @_ );
 	return $self->_shared_query( $s, \@p );
 
@@ -64,12 +78,14 @@ sub _shared_query {
 	$P ||= [];
 
 	# 	print "$Q with" . Data::Dumper::Dumper( \@{$P} );
-	my $sth = $self->dbh->prepare( $Q ) or die "failed to prepare statement :/";
+	my $sth;
+	unless ( $sth = $self->dbh->prepare( $Q ) ) {
+		Carp::confess "failed to prepare statement [$Q]";
+	}
 	try {
 		$sth->execute( @{$P} ) or die $!;
 	} catch {
 		require Data::Dumper;
-		require Carp;
 		Carp::confess( "Failed to execute ($Q) with parameters" . Data::Dumper::Dumper( \@{$P} ) );
 	};
 	return $sth;

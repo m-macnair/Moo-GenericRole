@@ -1,12 +1,12 @@
 #ABSTRACT: Do the thing I do for command line scripts
 package Moo::GenericRoleClass::CLI;
-our $VERSION = 'v1.0.13';
-##~ DIGEST : 0ac9f10ebd9c9b9b69f05a950a47d493
+our $VERSION = 'v1.0.14';
+##~ DIGEST : bd1cb60f4881d0d4ca39f20e2a5732d9
 use Moo;
 with qw/
   Moo::GenericRole::Common
   Moo::GenericRole::CombinedCLI
-  Moo::GenericRole::Config::Any
+  Moo::GenericRole::ConfigAny
   Moo::GenericRole::FileSystem
   /;
 

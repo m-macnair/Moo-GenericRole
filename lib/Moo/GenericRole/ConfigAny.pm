@@ -1,10 +1,10 @@
 # ABSTRACT : use Config::Any and Config::Any::Merge the way I like in Moo::Role form
 package Moo::GenericRole::ConfigAny;
-our $VERSION = 'v1.0.1';
-##~ DIGEST : f86d5f49dd21ec37bee3a9f87c7d218b
+our $VERSION = 'v1.0.2';
+##~ DIGEST : 005ac40d7c54eabae7d4cbd09acf1a84
 
 use strict;
-use Moo;
+use Moo::Role;
 use 5.006;
 use warnings;
 use Config::Any;
@@ -73,8 +73,8 @@ sub config_file {
 
 	my ( $self, $path ) = @_;
 	my $return = {};
+
 	if ( $path ) {
-		$self->check_file( $path );
 
 		$return = Config::Any::Merge->load_files(
 			{

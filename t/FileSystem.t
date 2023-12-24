@@ -11,8 +11,8 @@ use Test::More;
 
 use Test::Exception;
 
-my $module = $1 || 'Moo::GenericRole::FileSystem';
-use_ok( $module ) || BAIL_OUT "Failed to use $module : [$!]";
+my $module = $1      || 'Moo::GenericRole::FileSystem';
+use_ok( $module )    || BAIL_OUT "Failed to use $module : [$!]";
 my $obj = OBJ->new() || BAIL_OUT "Failed to construct role user module : [$!]";
 $obj->tmp_root( './' );
 $obj->tmp_dir();
