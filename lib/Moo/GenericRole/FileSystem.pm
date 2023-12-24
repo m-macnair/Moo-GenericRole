@@ -1,7 +1,8 @@
 # ABSTRACT: Common file system tasks
 package Moo::GenericRole::FileSystem;
-our $VERSION = 'v1.1.4';
-##~ DIGEST : e11af20ebcb4d682ff29ad3c20c1f0cf
+
+our $VERSION = 'v1.3.1';
+##~ DIGEST : e64b492b6cf7abd3cca286a4d9bb2df3
 
 use Moo::Role;
 with qw/Moo::GenericRole/;
@@ -14,7 +15,7 @@ ACCESSORS: {
 		default => sub {
 			my ( $self ) = @_;
 
-			$self->build_tmp_dir();
+			$self->clean_path( $self->build_tmp_dir() );
 		}
 	);
 
@@ -28,13 +29,25 @@ ACCESSORS: {
 
 }
 
-#get a unique temporary directory path
+=head3 init_tmp_dir
+	In most cases, we want ./<something descriptive>/<something unique> which messing with temp_root doesn't provide
+	so use the argument here as the root and do everything else as normal
+=cut
+
+sub init_tmp_dir {
+	my ( $self, $root ) = @_;
+	$root = $self->abs_path( $root );
+	$self->make_path( $self->tmp_root( $root ) );
+	return $self->tmp_dir();
+}
+
+#get a unique temporary directory path string
 sub build_tmp_dir_path {
 
 	#tested
 	my ( $self, $root ) = @_;
 	$root ||= $self->tmp_root();
-	return $self->build_time_path( $root );
+	return $self->clean_path( $self->build_time_path( $root ) );
 
 }
 
@@ -44,6 +57,7 @@ sub build_tmp_dir {
 	#tested
 
 	my ( $self, $root ) = @_;
+	$root ||= $self->tmp_root();
 	my $path = $self->build_tmp_dir_path( $root );
 
 	$self->make_path( $path );
@@ -140,7 +154,8 @@ sub safe_mvf {
 	}
 
 	#HFC if we're trying to overwrite
-	my $new_path = $self->safe_duplicate_path( $target, {fatal => 1, %{$opt}} );
+
+	my $new_path = $self->get_safe_path( $target, {fatal => 1, %{$opt}} );
 
 	require File::Copy;
 	File::Copy::mv( $source, $target_dir || $target )
@@ -172,7 +187,7 @@ sub safe_cpf {
 	}
 
 	#HFC if we're trying to overwrite
-	my $result = $self->safe_duplicate_path( $target, {fatal => 1, %{$opt}} );
+	my $result = $self->get_safe_path( $target, {fatal => 1, %{$opt}} );
 
 	require File::Copy;
 	File::Copy::cp( $source, $target_dir || $target )
@@ -191,17 +206,33 @@ sub safe_mvd {
 
 }
 
+=head3 safe_duplicate_path
+	get_duplicate_safe_path because safe_duplicate_path could be ambiguously interpretted when i'm half asleep
+=cut 
+
 sub safe_duplicate_path {
+	require Carp;
+	Carp::cluck( "Obsolete method name" );
+	my $self = shift;
+	$self->get_safe_path( @_ );
+
+}
+
+=head3 get_safe_path
+	Given a path, return the path or a path that can be confidently used instead, e.g. won't create a duplicate and is Windows proof
+=cut
+
+sub get_safe_path {
 
 	#tested
 	my $self = shift;
-	my ( $path, $c ) = @_;
+	my ( $path, $p ) = @_;
 
-	$c ||= {};
+	$p ||= {};
 	if ( -e $path ) {
 
 		#tested
-		confess( "Target [$path] already exists$/\t" ) if $c->{fatal};
+		confess( "Target [$path] already exists$/\t" ) if $p->{fatal};
 
 		my ( $name, $dir, $suffix ) = $self->file_parse( $path );
 
@@ -214,12 +245,21 @@ sub safe_duplicate_path {
 		# TODO sprintf?
 		my $newpath = "$dir/$name\_$uuid$suffix";
 
-		cluck( "Target [$path] already exists, renamed to $newpath$/\t" ) if $c->{verbose} || $self->verbose();
+		cluck( "Target [$path] already exists, renamed to $newpath$/\t" ) if $p->{verbose} || $self->can( 'verbose' ) && $self->verbose();
 
-		return $newpath;
+		$path = $newpath;
 	}
 	return $path;
 
+}
+
+sub clean_path {
+	my ( $self, $path ) = @_;
+	if ( -e $path && -d $path ) {
+		$path = "$path/";
+	}
+	$path =~ s|//+|/|g;
+	return $path;
 }
 
 =head3 file_parse
@@ -294,8 +334,10 @@ sub _build_tmp_dir {
 
 sub _shared_fc {
 	my ( $self, $source, $target, $opt ) = @_;
+
 	$opt ||= {};
 	$source = $self->abs_path( $source );
+
 	$target = $self->abs_path( $target );
 	return ( $source, $target, $opt );
 }
@@ -368,6 +410,7 @@ sub sub_on_find_files {
 			wanted => sub {
 				return unless -f $File::Find::name;
 				my $full_path = $self->abs_path( $File::Find::name );
+
 				goto Moo_GenericRole_FileSystem_sub_on_find_files_end unless ( &$sub( $full_path ) );
 			},
 			no_chdir => 1,
@@ -395,9 +438,8 @@ sub sub_on_directory_files {
 	confess( "Second parameter [" . ( defined( $directory ) ? $directory : '' ) . "] to sub_on_directory_files was not a valid directory" ) unless $directory && -d $directory;
 
 	for my $file ( glob qq<"$directory"/*> ) {
+		next unless -f $file;
 		my $full_path = $self->abs_path( $file );
-
-		next unless -f $full_path;
 		last unless ( &$sub( $full_path ) );
 	}
 	return;
