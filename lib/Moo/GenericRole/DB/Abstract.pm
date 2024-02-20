@@ -1,7 +1,7 @@
 #ABSTRACT: use $self->dbi and sql abstract
 package Moo::GenericRole::DB::Abstract;
-our $VERSION = 'v2.1.2';
-##~ DIGEST : fa9437a3e38ce77d34e54c22df4430f6
+our $VERSION = 'v2.2.2';
+##~ DIGEST : 79b82ca516479714caabec17abd2fe50
 use Try::Tiny;
 use Moo::Role;
 use Carp;
@@ -70,6 +70,17 @@ sub delete {
 	my ( $s, @p ) = $self->sqla->delete( @_ );
 	return $self->_shared_query( $s, \@p );
 
+}
+
+sub select_insert {
+	my ( $self, $table, $field, $criteria, $opt ) = @_;
+	$opt ||= {};
+	my $row = $self->select( $table, $field, $criteria )->fetchrow_hashref();
+	unless ( $row ) {
+		$self->insert( $table, $criteria );
+		$row = $self->select( $table, $field, $criteria )->fetchrow_hashref();
+	}
+	return $row;
 }
 
 sub _shared_query {

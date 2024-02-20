@@ -1,7 +1,7 @@
 #ABSTRACT: do file read/write with accessors
 package Moo::GenericRole::FileIO;
-our $VERSION = 'v2.0.15';
-##~ DIGEST : c0889e7a3586261be65494cf8dd1bff7
+our $VERSION = 'v2.0.16';
+##~ DIGEST : 3a6d4e124a17f8cf363fec183a5e0fa4
 # ABSTRACT: persistent file IO
 use Moo::Role;
 with qw/Moo::GenericRole/;
@@ -27,7 +27,7 @@ sub ofh {
 		if ( $c->{fh} ) {
 			$self->file_handles->{$path} = $c->{fh};
 		} else {
-			unless ( open( $self->file_handles->{$path}, $c->{openparams} || ">:encoding(UTF-8)", $path ) ) {
+			unless ( open( $self->file_handles->{$path}, $c->{openparams} || ">>:encoding(UTF-8)", $path ) ) {
 				confess( "Failed to open write file [$path] : $!" );
 			}
 		}

@@ -1,8 +1,8 @@
 # ABSTRACT: Common file system tasks
 package Moo::GenericRole::FileSystem;
 
-our $VERSION = 'v1.3.1';
-##~ DIGEST : e64b492b6cf7abd3cca286a4d9bb2df3
+our $VERSION = 'v1.4.1';
+##~ DIGEST : 1214366c1cf9e5a6725e820f4af7c435
 
 use Moo::Role;
 with qw/Moo::GenericRole/;
@@ -467,6 +467,34 @@ sub abs_path {
 	}
 	return $return; #return!
 
+}
+
+sub get_hashes_for_file {
+	my ( $self, $path ) = @_;
+
+	$path = $self->abs_path( $path );
+	my $md5_cmd  = qq<md5sum "$path" | awk '{ print \$1 }'>;
+	my $sha1_cmd = qq<sha1sum "$path" | awk '{ print \$1 }'>;
+	my $ed2k_cmd = qq<ed2k_hash "$path" >;
+
+	my $md5_sum  = `$md5_cmd`;
+	my $sha1_sum = `$sha1_cmd`;
+	my $ed2k_sum = `$ed2k_cmd`;
+
+	my $size;
+	chomp( $md5_sum, $sha1_sum, $ed2k_sum );
+	my @ed2k = split( '\|', $ed2k_sum );
+
+	$size     = $ed2k[3];
+	$ed2k_sum = $ed2k[4];
+
+	return {
+		path => $path,
+		size => $size,
+		md5  => lc( $md5_sum ),
+		sha1 => lc( $sha1_sum ),
+		ed2k => lc( $ed2k_sum )
+	};
 }
 
 =head3 glob_paths
