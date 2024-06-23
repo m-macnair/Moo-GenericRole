@@ -1,7 +1,7 @@
 #ABSTRACT: overwrites/extensions to DB for SQLite
 package Moo::GenericRole::DB::SQLite;
-our $VERSION = 'v1.0.4';
-##~ DIGEST : 5ea8a9d067836a3bd813b2fe8b335b4f
+our $VERSION = 'v1.0.5';
+##~ DIGEST : 8ecc5e3643cc009286ff17407292ae49
 use Moo::Role;
 use Carp qw/confess/;
 
@@ -36,6 +36,7 @@ sub get_dbh {
 	$opt->{sqlite_see_if_its_a_number} ||= 1;
 
 	my $dbh = DBI->connect( 'dbi:SQLite:dbname=' . $def->{database} );
+	return $dbh;
 
 }
 

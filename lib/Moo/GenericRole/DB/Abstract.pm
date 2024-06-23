@@ -1,7 +1,7 @@
 #ABSTRACT: use $self->dbi and sql abstract
 package Moo::GenericRole::DB::Abstract;
-our $VERSION = 'v2.2.2';
-##~ DIGEST : 79b82ca516479714caabec17abd2fe50
+our $VERSION = 'v2.2.3';
+##~ DIGEST : f62ed02775218331e4101a00c0b5e658
 use Try::Tiny;
 use Moo::Role;
 use Carp;
@@ -74,7 +74,14 @@ sub delete {
 
 sub select_insert {
 	my ( $self, $table, $field, $criteria, $opt ) = @_;
-	$opt ||= {};
+	Carp::Cluck( "Obsolete method name" );
+	return $self->select_insert_href( $table, $criteria, $field, $opt );
+}
+
+sub select_insert_href {
+	my ( $self, $table, $criteria, $field, $opt ) = @_;
+	$field ||= [qw/*/];
+	$opt   ||= {};
 	my $row = $self->select( $table, $field, $criteria )->fetchrow_hashref();
 	unless ( $row ) {
 		$self->insert( $table, $criteria );
