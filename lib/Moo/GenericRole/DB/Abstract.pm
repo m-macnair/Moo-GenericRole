@@ -1,7 +1,7 @@
 #ABSTRACT: use $self->dbi and sql abstract
 package Moo::GenericRole::DB::Abstract;
-our $VERSION = 'v2.2.3';
-##~ DIGEST : f62ed02775218331e4101a00c0b5e658
+our $VERSION = 'v2.2.4';
+##~ DIGEST : c701d4543d9c7b49d2e7bd602b5db7b5
 use Try::Tiny;
 use Moo::Role;
 use Carp;
@@ -88,6 +88,23 @@ sub select_insert_href {
 		$row = $self->select( $table, $field, $criteria )->fetchrow_hashref();
 	}
 	return $row;
+}
+
+sub select_insert_string_id {
+	my ( $self, $string, $table, $p ) = @_;
+	Carp::confess( "string parameter not provided" ) unless $string;
+	Carp::confess( "table parameter not provided" )  unless $table;
+
+	$p                  ||= {};
+	$p->{string_column} ||= 'name';
+	$p->{id_column}     ||= 'id';
+
+	my $row = $self->select_insert_href( $table, $p, [qw/* /] );
+	if ( wantarray() ) {
+		return ( $row->{$p->{id_column}}, $row );
+	} else {
+		return $row->{$p->{id_column}};
+	}
 }
 
 sub _shared_query {
