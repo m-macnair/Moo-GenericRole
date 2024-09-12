@@ -1,7 +1,7 @@
 #ABSTRACT: use $self->dbi and sql abstract
 package Moo::GenericRole::DB::Abstract;
-our $VERSION = 'v2.2.5';
-##~ DIGEST : 6f3a27b4ee1fc9e3bf5aa1d95a934ce3
+our $VERSION = 'v2.2.6';
+##~ DIGEST : 07d071d0264138de3098f720699a897d
 use Try::Tiny;
 use Moo::Role;
 use Carp;
@@ -92,10 +92,12 @@ sub select_insert_href {
 
 sub select_insert_string_id {
 	my ( $self, $string, $table, $q ) = @_;
-	Carp::confess( "string parameter not provided" ) unless $string;
-	Carp::confess( "table parameter not provided" )  unless $table;
+	$q ||= {};
+	unless ( $q->{allow_blank_string} ) {
+		Carp::confess( "string parameter not provided" ) unless $string;
+	}
+	Carp::confess( "table parameter not provided" ) unless $table;
 
-	$q                  ||= {};
 	$q->{string_column} ||= 'name';
 	$q->{id_column}     ||= 'id';
 
