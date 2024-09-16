@@ -1,7 +1,7 @@
 # ABSTRACT : use Config::Any and Config::Any::Merge the way I like in Moo::Role form
 package Moo::GenericRole::ConfigAny;
-our $VERSION = 'v1.0.3';
-##~ DIGEST : 72feaf9fb47999482818c0a52f265c1d
+our $VERSION = 'v1.0.4';
+##~ DIGEST : 71d87c05524e422f7f3e930a54dce88c
 
 use strict;
 use Moo::Role;
@@ -33,6 +33,8 @@ ACCESSORS: {
 		is      => 'rw',
 		lazy    => 1,
 		default => sub {
+
+			#this _should_ have a default setting in the code that uses it
 			Carp::confess "config not overwritten";
 		}
 	);
@@ -41,6 +43,8 @@ ACCESSORS: {
 		is      => 'rw',
 		lazy    => 1,
 		default => sub {
+
+			#this _should_ have a default setting in the code that uses it
 			Carp::confess "config_dir not overwritten";
 		}
 	);

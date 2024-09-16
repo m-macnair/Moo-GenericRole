@@ -1,7 +1,7 @@
 # ABSTRACT : perform and preserve command line interaction
 package Moo::GenericRole::CombinedCLI;
-our $VERSION = 'v1.3.1';
-##~ DIGEST : bfa9f0b1e3e82c141e3ddf809710560f
+our $VERSION = 'v1.3.2';
+##~ DIGEST : 188f68aa23d55eb1b6ab164e1ae92d7c
 
 require Getopt::Long;
 require Config::Any::Merge;
@@ -85,6 +85,8 @@ sub get_combined_config {
 		return $return; #return!
 	}
 }
+
+#TODO handle overlapping shorthand keys correctly ; -config -> config_dir and config_file doesn't work the way you think it does r/n
 
 sub get_cli_values {
 	my ( $self, $required, $optional, $p ) = @_;

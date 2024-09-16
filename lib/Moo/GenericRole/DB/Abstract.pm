@@ -1,7 +1,7 @@
 #ABSTRACT: use $self->dbi and sql abstract
 package Moo::GenericRole::DB::Abstract;
-our $VERSION = 'v2.2.6';
-##~ DIGEST : 07d071d0264138de3098f720699a897d
+our $VERSION = 'v3.0.1';
+##~ DIGEST : 68dcd0ebc0faf51958efad89545ef77e
 use Try::Tiny;
 use Moo::Role;
 use Carp;
@@ -98,7 +98,7 @@ sub select_insert_string_id {
 	}
 	Carp::confess( "table parameter not provided" ) unless $table;
 
-	$q->{string_column} ||= 'name';
+	$q->{string_column} ||= 'string';
 	$q->{id_column}     ||= 'id';
 
 	my $p = {$q->{string_column} => $string,};
