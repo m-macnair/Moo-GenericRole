@@ -1,7 +1,7 @@
 #ABSTRACT: overwrites/extensions to DB for SQLite
 package Moo::GenericRole::DB::SQLite;
-our $VERSION = 'v1.0.7';
-##~ DIGEST : 4c7b843237f94fa4aef27ce298981056
+our $VERSION = 'v1.0.8';
+##~ DIGEST : fec275bb83a44a388a4342ed0c9c2c65
 use Moo::Role;
 use Carp qw/confess/;
 
@@ -31,11 +31,13 @@ sub get_dbh {
 	confess( "SQLite Database file [$def->{database}] does not exist" ) unless -e $def->{database};
 	confess( "SQLite Database file [$def->{database}] is unreadable" )  unless -r $def->{database};
 	confess( "SQLite Database file [$def->{database}] is unwritable" )  unless -w $def->{database};
-	$opt->{AutoCommit}                 ||= 0;
-	$opt->{RaiseError}                 ||= 1;
-	$opt->{sqlite_see_if_its_a_number} ||= 1;
+	$opt->{AutoCommit}                 //= 1; # because the $opt value has not been provided ever ;/
+	$opt->{RaiseError}                 //= 1;
+	$opt->{sqlite_see_if_its_a_number} //= 1;
+	use Data::Dumper;
 
-	my $dbh = DBI->connect( 'dbi:SQLite:dbname=' . $def->{database} );
+	# 	die Dumper($opt);
+	my $dbh = DBI->connect( 'dbi:SQLite:dbname=' . $def->{database}, undef, undef, $opt );
 	return $dbh;
 
 }

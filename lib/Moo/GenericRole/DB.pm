@@ -1,7 +1,7 @@
 #ABSTRACT: Baseline for accessor based database interaction
 package Moo::GenericRole::DB;
-our $VERSION = 'v1.0.18';
-##~ DIGEST : 8e939e25f0bc2f06c2a0980d6b8e574a
+our $VERSION = 'v1.0.19';
+##~ DIGEST : 23463ac5797879535e33f00b820bf037
 use Moo::Role;
 with qw/Moo::GenericRole/;
 use Carp;
@@ -83,7 +83,7 @@ sub dbh_from_def {
 	for ( qw/ host port / ) {
 		$dsn .= "$_=" . ( defined( $def->{$_} ) ? "$def->{$_};" : ";" );
 	}
-	my $dbh = DBI->connect( $dsn, $def->{user}, $def->{password} ) or die $DBI::errstr;
+	my $dbh = DBI->connect( $dsn, $def->{user}, $def->{password}, $opt ) or die $DBI::errstr;
 	return $dbh;
 
 }
