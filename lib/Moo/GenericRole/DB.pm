@@ -1,7 +1,7 @@
 #ABSTRACT: Baseline for accessor based database interaction
 package Moo::GenericRole::DB;
-our $VERSION = 'v1.0.18';
-##~ DIGEST : 8e939e25f0bc2f06c2a0980d6b8e574a
+our $VERSION = 'v1.0.19';
+##~ DIGEST : c50a85f08478e7c029d0392c9056ca8e
 use Moo::Role;
 with qw/Moo::GenericRole/;
 use Carp;
@@ -153,6 +153,30 @@ sub get_column_array {
 		push( @{$return}, $row->[$col] );
 	}
 	return $return;
+
+}
+
+sub execute_file {
+	my ( $self, $schema_file ) = @_;
+
+	# Open the schema file
+	open my $fh, '<', $schema_file or Carp::Confess( "Cannot open schema file: $!" );
+
+	# Read the entire schema file content
+	my $schema = do { local $/; <$fh> };
+
+	# Execute each statement in the schema file
+	for my $statement ( split /;/, $schema ) {
+
+		# Trim whitespace from each statement
+		$statement =~ s/^\s+|\s+$//g;
+		next if $statement eq ''; # Skip empty statements
+		$self->dbh->do( $statement ) or Carp::confess( $DBI::errstr );
+	}
+
+	# Close the schema file
+	close $fh;
+	$self->commit_force();
 
 }
 
