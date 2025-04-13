@@ -1,12 +1,12 @@
 # ABSTRACT: Common file system tasks
 package Moo::GenericRole::FileSystem;
 
-our $VERSION = 'v1.4.1';
-##~ DIGEST : 1214366c1cf9e5a6725e820f4af7c435
+our $VERSION = 'v1.4.4';
+##~ DIGEST : f3cfbac95af49f413f6da4984105742d
 
 use Moo::Role;
 with qw/Moo::GenericRole/;
-
+use Carp qw/croak confess cluck/;
 ACCESSORS: {
 
 	has tmp_dir => (
@@ -399,8 +399,9 @@ sub make_paths {
 sub sub_on_find_files {
 
 	#tested
-	my ( $self, $sub, $directory, $find_opts ) = @_;
+	my ( $self, $sub, $directory, $find_opts, $p ) = @_;
 	$find_opts ||= {};
+	$p         ||= {};
 	confess( "First parameter to sub_on_find_files was not a code reference$/\t" )                                                     unless ref( $sub ) eq 'CODE';
 	confess( "Second parameter [" . ( defined( $directory ) ? $directory : '' ) . "] to sub_on_find_files was not a valid directory" ) unless $directory && -d $directory;
 	$self->check_dir( $directory );
@@ -408,10 +409,11 @@ sub sub_on_find_files {
 	File::Find::find(
 		{
 			wanted => sub {
-				return unless -f $File::Find::name;
+				return if ( -d $File::Find::name );
+				return unless ( $self->is_a_file( $File::Find::name ) );
 				my $full_path = $self->abs_path( $File::Find::name );
 
-				goto Moo_GenericRole_FileSystem_sub_on_find_files_end unless ( &$sub( $full_path ) );
+				goto Moo_GenericRole_FileSystem_sub_on_find_files_end unless ( &$sub( $full_path, $File::Find::name ) );
 			},
 			no_chdir => 1,
 			%{$find_opts}
@@ -438,11 +440,30 @@ sub sub_on_directory_files {
 	confess( "Second parameter [" . ( defined( $directory ) ? $directory : '' ) . "] to sub_on_directory_files was not a valid directory" ) unless $directory && -d $directory;
 
 	for my $file ( glob qq<"$directory"/*> ) {
-		next unless -f $file;
+		next if ( -d $file );
+		next unless ( $self->is_a_file( $file ) );
 		my $full_path = $self->abs_path( $file );
 		last unless ( &$sub( $full_path ) );
 	}
 	return;
+}
+
+sub check_softlink_file {
+	my ( $self, $path ) = @_;
+	if ( -l $path ) {
+		my $link_path = readlink( $path );
+
+		# 		warn $link_path;
+		if ( -f $link_path ) {
+			return 1;
+		}
+	}
+	return;
+}
+
+sub is_a_file {
+	my ( $self, $path ) = @_;
+	return -f $path || $self->check_softlink_file( $path );
 }
 
 =head3 abs_path
@@ -515,6 +536,17 @@ sub glob_paths {
 	require File::DosGlob;
 	return [ File::DosGlob::glob( $match_string ) ];
 
+}
+
+sub make_dirs {
+	my ( $self, $root, $folder_arref, $p ) = @_;
+	$p ||= {};
+	for my $folder ( @{$folder_arref} ) {
+		my $new = "$root/$folder";
+		unless ( -d $new ) {
+			mkdir( $new ) or die $!;
+		}
+	}
 }
 
 1;

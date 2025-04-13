@@ -1,7 +1,8 @@
 #ABSTRACT: overwrites/extensions to DB for SQLite
 package Moo::GenericRole::DB::SQLite;
-our $VERSION = 'v1.0.8';
-##~ DIGEST : fec275bb83a44a388a4342ed0c9c2c65
+our $VERSION = 'v1.0.9';
+##~ DIGEST : decad37ccd6e07614379e8042e6ebd13
+
 use Moo::Role;
 use Carp qw/confess/;
 
@@ -58,6 +59,21 @@ sub sqlite3_file_to_dbh {
 	my ( $self, $path, $opt ) = @_;
 	$self->sqlite_path( $path );
 	$self->dbh( $self->sqlite3_connect_to_file( $path, $opt ) );
+
+}
+
+sub table_exists {
+	my ( $self, $table_name ) = @_;
+	my $sth = $self->dbh->prepare( "SELECT name FROM sqlite_master WHERE type='table' AND name=?" );
+
+	$sth->execute( $table_name );
+	my @row = $sth->fetchrow_array;
+
+	# Clean up
+	$sth->finish;
+
+	# If a row is returned, the table exists
+	return @row ? 1 : 0;
 
 }
 
