@@ -1,8 +1,8 @@
 # ABSTRACT: Common file system tasks
 package Moo::GenericRole::FileSystem;
 
-our $VERSION = 'v1.4.1';
-##~ DIGEST : 1214366c1cf9e5a6725e820f4af7c435
+our $VERSION = 'v1.4.2';
+##~ DIGEST : 8f60a64abdc10cb15efdf72b309de183
 
 use Moo::Role;
 with qw/Moo::GenericRole/;
@@ -515,6 +515,17 @@ sub glob_paths {
 	require File::DosGlob;
 	return [ File::DosGlob::glob( $match_string ) ];
 
+}
+
+sub make_dirs {
+	my ( $self, $root, $folder_arref, $p ) = @_;
+	$p ||= {};
+	for my $folder ( @{$folder_arref} ) {
+		my $new = "$root/$folder";
+		unless ( -d $new ) {
+			mkdir( $new ) or die $!;
+		}
+	}
 }
 
 1;
