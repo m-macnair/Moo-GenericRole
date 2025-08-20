@@ -1,7 +1,9 @@
 # ABSTRACT : use Config::Any and Config::Any::Merge the way I like in Moo::Role form
 package Moo::GenericRole::ConfigAny;
-our $VERSION = 'v1.0.4';
-##~ DIGEST : fa4d22c0c8e1bcd5bbb028f42cf3f407
+
+our $VERSION = 'v1.0.5';
+
+##~ DIGEST : e88575df30af5e6e3101a09f3640701a
 
 use strict;
 use Moo::Role;
@@ -33,7 +35,10 @@ ACCESSORS: {
 		is      => 'rw',
 		lazy    => 1,
 		default => sub {
-			Carp::confess "config not overwritten - there is/was a reason for this?";
+
+			#this _should_ have a default setting in the code that uses it
+			Carp::confess 'Nothing stored in $self->config() before first call';
+
 		}
 	);
 
@@ -41,7 +46,9 @@ ACCESSORS: {
 		is      => 'rw',
 		lazy    => 1,
 		default => sub {
+
 			Carp::confess "config_dir not overwritten - there is/was a reason for this?";
+
 		}
 	);
 }
@@ -60,7 +67,7 @@ sub standard_config {
 	$path ||= './config/';
 
 	my $config = $self->config_dir( $self->config_dir_path( $path ) );
-	$self->config( $config );
+	return $self->config( $config );
 }
 
 sub config_dir {
@@ -76,7 +83,6 @@ sub config_dir {
 			},
 			$path
 		);
-
 		$return = Config::Any::Merge->load_files(
 			{
 				files   => \@cfiles,
