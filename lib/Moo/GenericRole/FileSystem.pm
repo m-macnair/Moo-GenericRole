@@ -1,8 +1,8 @@
 # ABSTRACT: Common file system tasks
 package Moo::GenericRole::FileSystem;
 
-our $VERSION = 'v1.4.4';
-##~ DIGEST : f3cfbac95af49f413f6da4984105742d
+our $VERSION = 'v1.4.6';
+##~ DIGEST : 37adb8089b5eeed327fda029056fffb9
 
 use Moo::Role;
 with qw/Moo::GenericRole/;
@@ -443,7 +443,7 @@ sub sub_on_directory_files {
 		next if ( -d $file );
 		next unless ( $self->is_a_file( $file ) );
 		my $full_path = $self->abs_path( $file );
-		last unless ( &$sub( $full_path ) );
+		last unless ( &$sub( $full_path, $file, $directory ) );
 	}
 	return;
 }
@@ -544,7 +544,7 @@ sub make_dirs {
 	for my $folder ( @{$folder_arref} ) {
 		my $new = "$root/$folder";
 		unless ( -d $new ) {
-			mkdir( $new ) or die $!;
+			mkdir( $new ) or croak "Failed to create directory [$new] $!";
 		}
 	}
 }
