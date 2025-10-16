@@ -3,8 +3,8 @@ package Moo::GenericRole::FileIO::CSV;
 use strict;
 use warnings;
 
-our $VERSION = 'v2.1.0';
-##~ DIGEST : 9fdf4afb00c07fe7058db26584f5bf42
+our $VERSION = 'v2.1.2';
+##~ DIGEST : 312729b3f5c1ce243113a12b76713290
 
 use Moo::Role;
 use Carp;
@@ -56,7 +56,6 @@ ACCESSORS: {
 
 # do something on csv rows that aren't commented out until something returns falsey
 sub sub_on_csv {
-
 	my ( $self, $sub, $path ) = @_;
 	Carp::confess( 'Path not defined' ) unless ( defined( $path ) );
 	die "[$path] not found"             unless ( -e $path );
@@ -68,6 +67,8 @@ sub sub_on_csv {
 		if ( index( $colref->[0], '#' ) == 0 ) {
 			next;
 		}
+
+		#$. being the line number which may be useful
 		last unless &$sub( $colref, $. );
 	}
 	close( $ifh ) or die "Failed to close [$path] : $!";
@@ -292,6 +293,18 @@ sub set_column_order_for_path {
 	my ( $self, $column_order, $path ) = @_;
 	$self->file_lead_keys()->{$path} = $column_order;
 	return;
+}
+
+#Overkill but consistent
+sub load_column_order_for_path {
+	my ( $self, $path ) = @_;
+	open( my $ifh, "<:encoding(UTF-8)", $path ) or die "Failed to open [$path] : $!";
+	my $csv          = $self->csv();
+	my $column_order = $csv->getline( $ifh );
+	close( $ifh ) or die "Failed to close [$path] : $!";
+
+	$self->file_lead_keys()->{$path} = $column_order;
+	return $column_order;
 }
 
 =head3 reorder_csv
