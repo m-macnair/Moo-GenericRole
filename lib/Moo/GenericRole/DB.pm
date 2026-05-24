@@ -1,6 +1,6 @@
 #ABSTRACT: Baseline for accessor based database interaction
 package Moo::GenericRole::DB;
-our $VERSION = 'v1.0.21';
+our $VERSION = 'v1.1.0';
 ##~ DIGEST : f926949d854befa0fb4c15c8b3a71701
 
 use Moo::Role;

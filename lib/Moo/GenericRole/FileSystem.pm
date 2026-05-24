@@ -1,7 +1,8 @@
 # ABSTRACT: Common file system tasks
 package Moo::GenericRole::FileSystem;
 
-##~ DIGEST : f3cfbac95af49f413f6da4984105742d
+our $VERSION = 'v1.4.7';
+##~ DIGEST : f2cf6fc1910cbe78196626e7757f87ca
 
 use Moo::Role;
 with qw/Moo::GenericRole/;
@@ -389,6 +390,23 @@ sub make_paths {
 
 }
 
+=head3 sub_on_file_or_directory
+
+	given a path, if it's a file, do $something to it, if it's a directory do $something to every file recursive
+
+=cut
+
+sub sub_on_file_or_directory {
+	my ( $self, $sub, $path, $find_opts, $p ) = @_;
+	confess( "First parameter to sub_on_file_or_directory was not a code reference$/\t" ) unless ref( $sub ) eq 'CODE';
+	confess( "Second parameter to sub_on_file_or_directory was not a valid path$/\t" )    unless -e $path;
+	if ( -d $path ) {
+		return $self->sub_on_find_files( $sub, $path, $find_opts, $p );
+	}
+	my $full_path = $self->abs_path( $path );
+	&$sub( $path );
+}
+
 =head3 sub_on_find_files
 
 	Given a sub and a directory, pass the sub each file in the directory and subdirectories until the sub returns falsey, then jump out of the search
@@ -442,7 +460,7 @@ sub sub_on_directory_files {
 		next if ( -d $file );
 		next unless ( $self->is_a_file( $file ) );
 		my $full_path = $self->abs_path( $file );
-		last unless ( &$sub( $full_path ) );
+		last unless ( &$sub( $full_path, $file, $directory ) );
 	}
 	return;
 }
@@ -543,7 +561,7 @@ sub make_dirs {
 	for my $folder ( @{$folder_arref} ) {
 		my $new = "$root/$folder";
 		unless ( -d $new ) {
-			mkdir( $new ) or die $!;
+			mkdir( $new ) or croak "Failed to create directory [$new] $!";
 		}
 	}
 }

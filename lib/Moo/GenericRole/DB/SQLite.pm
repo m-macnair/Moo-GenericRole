@@ -1,7 +1,7 @@
 #ABSTRACT: overwrites/extensions to DB for SQLite
 package Moo::GenericRole::DB::SQLite;
-our $VERSION = 'v1.0.9';
-##~ DIGEST : decad37ccd6e07614379e8042e6ebd13
+our $VERSION = 'v1.0.11';
+##~ DIGEST : e416f15ce5c6d73434467b32c96fa197
 
 use Moo::Role;
 use Carp qw/confess/;
@@ -43,11 +43,12 @@ sub get_dbh {
 
 }
 
-sub last_id {
-	my ( $self ) = @_;
-	my $sth = $self->query( 'select last_insert_rowid()' );
+around "last_insert_id" => sub {
+	my $orig = shift;
+	my $self = shift;
+	my $sth  = $self->query( 'select last_insert_rowid()' );
 	return $sth->fetchrow_arrayref()->[0];
-}
+};
 
 sub sqlite3_connect_to_file {
 	my ( $self, $path, $opt ) = @_;
